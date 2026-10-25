@@ -1,0 +1,2186 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Frequency // Genre Roulette</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#0b0c10',
+            panel: '#12141c',
+            neonCyan: '#00f0ff',
+            neonPink: '#ff007f',
+            neonAmber: '#ffb703',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Space Grotesk', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --bg-obsidian: #0b0c10;
+      --neon-cyan: #00f0ff;
+      --neon-pink: #ff007f;
+      --neon-amber: #ffb703;
+    }
+
+    body {
+      background-color: var(--bg-obsidian);
+      background-image: 
+        radial-gradient(circle at 12% 15%, rgba(0, 240, 255, 0.08) 0%, transparent 38%),
+        radial-gradient(circle at 88% 22%, rgba(255, 0, 127, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 50% 85%, rgba(255, 183, 3, 0.05) 0%, transparent 45%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+      color: #f3f4f6;
+      overflow-x: hidden;
+    }
+
+    /* Glassmorphism Studio Panels */
+    .glass-panel {
+      background: rgba(18, 20, 28, 0.78);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    /* Genre Card Active & Hover States */
+    .genre-card {
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .genre-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.24);
+    }
+    .genre-card.active {
+      border-color: var(--neon-cyan);
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.13) 0%, rgba(255, 0, 127, 0.08) 100%);
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.22), inset 0 0 15px rgba(0, 240, 255, 0.08);
+    }
+    .genre-card.roulette-scan {
+      border-color: var(--neon-amber);
+      box-shadow: 0 0 25px rgba(255, 183, 3, 0.45);
+      transform: scale(1.02);
+    }
+
+    /* Tactile Spin Button */
+    .btn-spin {
+      background: linear-gradient(135deg, #00f0ff 0%, #0088ff 45%, #ff007f 100%);
+      background-size: 200% 200%;
+      animation: gradientShift 5s ease infinite;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.35), 0 0 60px rgba(255, 0, 127, 0.2);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-spin:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.015);
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.55), 0 0 70px rgba(255, 0, 127, 0.35);
+    }
+    .btn-spin:active:not(:disabled) {
+      transform: translateY(1px) scale(0.99);
+    }
+    .btn-spin:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      filter: saturate(0.4);
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Animated Equalizer Bars */
+    .eq-bar {
+      width: 4px;
+      border-radius: 999px;
+      background: linear-gradient(to top, #00f0ff, #ff007f);
+      animation: eqBounce 1.1s ease-in-out infinite alternate;
+    }
+    @keyframes eqBounce {
+      0% { height: 6px; opacity: 0.5; }
+      100% { height: 22px; opacity: 1; }
+    }
+
+    /* Slot Machine Window */
+    .slot-window {
+      background: radial-gradient(circle at center, #161925 0%, #090a0f 100%);
+      box-shadow: inset 0 12px 28px rgba(0,0,0,0.85), inset 0 -12px 28px rgba(0,0,0,0.85);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0b0c10;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #262938;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #00f0ff;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-neonCyan selection:text-obsidian">
+
+  <!-- Particle / Confetti Overlay Canvas -->
+  <canvas id="confettiCanvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+  <!-- Top Studio Header -->
+  <header class="sticky top-0 z-30 border-b border-white/10 bg-obsidian/85 backdrop-blur-xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <!-- Animated Studio Equalizer Emblem -->
+        <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-end justify-center gap-1 pb-2.5 px-2 shadow-inner">
+          <span class="eq-bar" style="animation-delay: 0.0s"></span>
+          <span class="eq-bar" style="animation-delay: 0.25s"></span>
+          <span class="eq-bar" style="animation-delay: 0.1s"></span>
+          <span class="eq-bar" style="animation-delay: 0.4s"></span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-display font-extrabold text-lg sm:text-xl tracking-tight text-white">DAILY FREQUENCY</span>
+            <span class="hidden sm:inline-block text-xs font-mono uppercase px-2 py-0.5 rounded bg-neonCyan/15 text-neonCyan border border-neonCyan/30">// GENRE ROULETTE</span>
+          </div>
+          <p class="text-xs text-gray-400 font-mono" id="currentDateDisplay">LOADING STUDIO CLOCK...</p>
+        </div>
+      </div>
+
+      <!-- Right Controls: Today's Locked Status & Audio Mute Toggle -->
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <div id="headerTodayBadge" class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-gray-400">TODAY:</span>
+          <span id="headerTodayText" class="text-white font-semibold">NOT LOCKED</span>
+        </div>
+
+        <button id="fullSurpriseBtn" title="Randomly pick Primary Genre AND Spin Subgenre" class="px-3 py-2 rounded-xl bg-neonAmber/15 hover:bg-neonAmber/25 border border-neonAmber/40 text-neonAmber text-xs sm:text-sm font-display font-bold tracking-wide transition flex items-center gap-2">
+          <i class="fa-solid fa-bolt"></i>
+          <span class="hidden sm:inline">FULL ROULETTE</span>
+          <span class="sm:hidden">AUTO</span>
+        </button>
+
+        <button id="soundToggleBtn" aria-label="Toggle Sound Effects" class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-neonCyan transition" title="Toggle Web Audio Synth Sounds">
+          <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+
+      <!-- LEFT COLUMN (7 Cols on LG): Step 1 Primary Genre Grid + Active 3-Subgenre Breakdown -->
+      <section class="lg:col-span-7 flex flex-col gap-6">
+
+        <!-- Step 1 Panel: Primary Genre Selector -->
+        <div class="glass-panel rounded-2xl p-5 sm:p-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 text-[11px] font-mono font-bold uppercase rounded bg-neonCyan text-obsidian">STEP 01</span>
+                <h2 class="font-display text-lg sm:text-xl font-bold text-white tracking-tight">Select Primary Sonic Territory</h2>
+              </div>
+              <p class="text-xs sm:text-sm text-gray-400 mt-1">Choose your foundational genre, edit existing ones, or add your own custom genres.</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="addPrimaryBtn" class="px-3 py-2 rounded-xl bg-neonCyan/15 hover:bg-neonCyan/25 border border-neonCyan/40 text-neonCyan font-display font-bold text-xs sm:text-sm transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-plus"></i>
+                <span>Add Genre</span>
+              </button>
+              <button id="randomPrimaryBtn" class="px-3.5 py-2 rounded-xl bg-neonPink/15 hover:bg-neonPink/25 border border-neonPink/40 text-neonPink font-display font-bold text-xs sm:text-sm transition flex items-center gap-2 shadow-sm">
+                <i class="fa-solid fa-shuffle"></i>
+                <span>Surprise Primary</span>
+              </button>
+              <button id="resetCatalogBtn" title="Reset all genres to default studio catalog" class="px-2.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white font-mono text-xs transition flex items-center gap-1">
+                <i class="fa-solid fa-rotate-left"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Primary Genres Grid -->
+          <div id="genreGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <!-- Dynamically populated by JS -->
+          </div>
+        </div>
+
+        <!-- Step 2 Preview Panel: Subgenres for the Active Primary Genre -->
+        <div class="glass-panel rounded-2xl p-5 sm:p-6">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 text-[11px] font-mono font-bold uppercase rounded bg-neonPink text-white">STEP 02</span>
+              <h3 class="font-display text-base sm:text-lg font-bold text-white">
+                <span id="subgenreCountBadge">3</span> Subgenres Loaded: <span id="loadedGenreTitle" class="text-neonCyan">Electronic / EDM</span>
+              </h3>
+            </div>
+            <div class="flex items-center gap-3">
+              <span id="subgenreProbBadge" class="text-xs font-mono text-gray-400 hidden sm:inline">33.3% PROBABILITY EACH</span>
+              <button id="addSubgenreBtn" class="px-3 py-1.5 rounded-xl bg-neonPink/15 hover:bg-neonPink/25 border border-neonPink/40 text-neonPink font-display font-bold text-xs transition flex items-center gap-1.5">
+                <i class="fa-solid fa-plus"></i>
+                <span>Add Subgenre</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Subgenre Cards -->
+          <div id="subgenrePreviewList" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <!-- Dynamically populated by JS -->
+          </div>
+        </div>
+
+        <!-- Daily Listening Log (7-Day History) -->
+        <div class="glass-panel rounded-2xl p-5 sm:p-6">
+          <div class="flex items-center justify-between gap-2 mb-4">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-neonAmber/15 border border-neonAmber/30 flex items-center justify-center text-neonAmber">
+                <i class="fa-solid fa-calendar-check text-sm"></i>
+              </div>
+              <div>
+                <h3 class="font-display text-base sm:text-lg font-bold text-white leading-tight">Daily Listening Log</h3>
+                <p class="text-xs text-gray-400">Your last 7 locked daily frequencies (stored locally)</p>
+              </div>
+            </div>
+
+            <button id="clearHistoryBtn" class="text-xs font-mono text-gray-400 hover:text-rose-400 transition px-2.5 py-1 rounded-lg hover:bg-white/5">
+              <i class="fa-solid fa-trash-can mr-1"></i>Clear
+            </button>
+          </div>
+
+          <div id="listeningLogContainer" class="space-y-2.5">
+            <!-- Dynamically populated by JS -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT COLUMN (5 Cols on LG): Interactive Subgenre Spinner + Winning Vibe Card -->
+      <section class="lg:col-span-5 flex flex-col gap-6 lg:sticky lg:top-24">
+
+        <!-- Interactive Spinner Deck -->
+        <div class="glass-panel rounded-2xl p-5 sm:p-6 flex flex-col items-center relative overflow-hidden">
+          <!-- Subtle Top Glow Bar -->
+          <div class="w-full flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 text-[11px] font-mono font-bold uppercase rounded bg-neonAmber text-obsidian">STEP 03</span>
+              <h2 class="font-display text-lg font-bold text-white">Subgenre Roulette</h2>
+            </div>
+
+            <!-- View Mode Toggle: Wheel vs Slot Reel -->
+            <div class="inline-flex rounded-xl bg-obsidian/90 p-1 border border-white/10">
+              <button id="modeWheelBtn" class="px-3 py-1 rounded-lg text-xs font-mono font-semibold transition bg-neonCyan text-obsidian">
+                <i class="fa-solid fa-circle-notch mr-1"></i>Wheel
+              </button>
+              <button id="modeSlotBtn" class="px-3 py-1 rounded-lg text-xs font-mono font-semibold transition text-gray-400 hover:text-white">
+                <i class="fa-solid fa-sliders mr-1"></i>Slot Reel
+              </button>
+            </div>
+          </div>
+
+          <!-- Active Primary Indicator Banner -->
+          <div class="w-full rounded-xl bg-white/[0.03] border border-white/10 px-3.5 py-2 mb-4 flex items-center justify-between text-xs font-mono">
+            <span class="text-gray-400">ACTIVE DECK:</span>
+            <span id="deckActiveGenreName" class="text-neonCyan font-bold uppercase tracking-wider">ELECTRONIC / EDM</span>
+          </div>
+
+          <!-- VIEW 1: 6-Slice Balanced Roulette Wheel Canvas -->
+          <div id="wheelViewContainer" class="relative w-full max-w-[330px] aspect-square flex items-center justify-center my-1">
+            <!-- Top Physical Pointer Flapper -->
+            <div id="wheelPointer" class="absolute -top-2.5 z-20 pointer-events-none transition-transform duration-75" style="transform-origin: 50% 6px;">
+              <svg width="36" height="42" viewBox="0 0 36 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <filter id="pointerGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#ff007f" flood-opacity="0.8"/>
+                </filter>
+                <path d="M18 40L4 10C2.5 6.5 5 2 9 2H27C31 2 33.5 6.5 32 10L18 40Z" fill="#ff007f" stroke="#ffffff" stroke-width="2" filter="url(#pointerGlow)"/>
+                <circle cx="18" cy="10" r="4" fill="#0b0c10"/>
+              </svg>
+            </div>
+
+            <canvas id="rouletteCanvas" class="w-full h-full rounded-full"></canvas>
+          </div>
+
+          <!-- VIEW 2: Kinetic Slot Machine Reel Cycler (Hidden by default) -->
+          <div id="slotViewContainer" class="hidden w-full my-2">
+            <div class="slot-window relative w-full h-64 rounded-2xl border-2 border-white/15 overflow-hidden flex flex-col items-center justify-center">
+              <!-- Center Target Reticle Lines -->
+              <div class="
+                pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 h-20
+                border-y-2 border-neonCyan/70 bg-neonCyan/[0.06] z-10
+                flex items-center justify-between px-3
+              ">
+                <i class="fa-solid fa-caret-right text-neonCyan text-xl drop-shadow-[0_0_8px_#00f0ff]"></i>
+                <span class="text-[10px] font-mono uppercase tracking-widest text-neonCyan/80 bg-obsidian/80 px-2 py-0.5 rounded">LOCK TARGET</span>
+                <i class="fa-solid fa-caret-left text-neonCyan text-xl drop-shadow-[0_0_8px_#00f0ff]"></i>
+              </div>
+
+              <!-- Canvas for Ultra-Smooth 60FPS Kinetic Slot Reel -->
+              <canvas id="slotCanvas" class="w-full h-full block"></canvas>
+            </div>
+          </div>
+
+          <!-- Live Telemetry Readout During Spin -->
+          <div class="w-full mt-3 mb-4 flex items-center justify-between px-3 py-2 rounded-xl bg-obsidian/70 border border-white/5 font-mono text-xs">
+            <span class="text-gray-400">SIGNAL READOUT:</span>
+            <span id="liveSpinReadout" class="text-neonAmber font-bold truncate max-w-[200px]">READY TO SPIN</span>
+          </div>
+
+          <!-- Prominent Tactile SPIN SUBGENRE Button -->
+          <button id="spinButton" class="btn-spin w-full py-4 px-6 rounded-2xl font-display font-extrabold text-base sm:text-lg text-obsidian tracking-wider uppercase flex items-center justify-center gap-3 shadow-xl">
+            <i class="fa-solid fa-compact-disc text-xl animate-spin" style="animation-duration: 6s;"></i>
+            <span>SPIN SUBGENRE</span>
+          </button>
+        </div>
+
+        <!-- Winning Vibe Locked Result Card -->
+        <div id="vibeResultCard" class="glass-panel rounded-2xl p-5 sm:p-6 border-2 border-neonCyan/50 relative overflow-hidden transition-all duration-300">
+          <!-- Ambient Corner Glow -->
+          <div class=" -top-16 -right-16 w-36 h-36 bg-neonCyan/20 rounded-full blur-2xl pointer-events-none absolute"></div>
+          <div class=" -bottom-16 -left-16 w-36 h-36 bg-neonPink/20 rounded-full blur-2xl pointer-events-none absolute"></div>
+
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <span id="resultStatusBadge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold uppercase bg-neonCyan/15 text-neonCyan border border-neonCyan/40">
+              <span class="w-2 h-2 rounded-full bg-neonCyan animate-ping"></span>
+              STANDBY // SPIN TO LOCK VIBE
+            </span>
+            <span id="resultPrimaryTag" class="text-xs font-mono text-gray-400">Electronic / EDM</span>
+          </div>
+
+          <h3 id="resultSubgenreTitle" class="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight mb-2">
+            Melodic Bass & Dubstep
+          </h3>
+
+          <p id="resultSonicTexture" class="text-xs sm:text-sm text-gray-300 leading-relaxed mb-4">
+            Lush supersaw chords, emotional vocal chops, and thunderous sub-bass drops that balance euphoria with heavy low-end impact.
+          </p>
+
+          <!-- Vibe Check Telemetry Pills -->
+          <div class="grid grid-cols-2 gap-2.5 mb-5">
+            <div class="rounded-xl bg-obsidian/80 border border-white/10 p-3">
+              <div class="text-[10px] font-mono uppercase text-gray-400">TEMPO / BPM RANGE</div>
+              <div id="resultBpm" class="font-mono font-bold text-sm sm:text-base text-neonAmber mt-0.5">140 – 150 BPM</div>
+            </div>
+            <div class="rounded-xl bg-obsidian/80 border border-white/10 p-3">
+              <div class="text-[10px] font-mono uppercase text-gray-400">SONIC MOOD</div>
+              <div id="resultMood" class="font-display font-bold text-sm sm:text-base text-neonPink mt-0.5">Euphoric & Heavy</div>
+            </div>
+          </div>
+
+          <!-- Lock In For Today Action Button -->
+          <button id="lockInTodayBtn" class="w-full mb-4 py-3 px-4 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-emerald-300 font-display font-bold text-sm transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-lock"></i>
+            <span id="lockInBtnText">Lock In for Today's Log</span>
+          </button>
+
+          <!-- Quick-Launch Streaming Links -->
+          <div>
+            <div class="text-[11px] font-mono uppercase text-gray-400 mb-2 flex items-center justify-between">
+              <span>QUICK-LAUNCH STREAMING MIXES</span>
+              <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+              <a id="linkSpotify" href="#" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#1DB954]/15 hover:bg-[#1DB954]/30 border border-[#1DB954]/40 text-[#1ed760] text-xs font-semibold transition">
+                <i class="fa-brands fa-spotify text-sm"></i>
+                <span>Spotify</span>
+              </a>
+              <a id="linkYTMusic" href="#" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#FF0000]/15 hover:bg-[#FF0000]/30 border border-[#FF0000]/40 text-[#ff4d4d] text-xs font-semibold transition">
+                <i class="fa-brands fa-youtube text-sm"></i>
+                <span>YT Music</span>
+              </a>
+              <a id="linkSoundCloud" href="#" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#ff5500]/15 hover:bg-[#ff5500]/30 border border-[#ff5500]/40 text-[#ff7733] text-xs font-semibold transition">
+                <i class="fa-brands fa-soundcloud text-sm"></i>
+                <span>SoundCloud</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Toast Notification Banner -->
+  <div id="toastBanner" class="fixed bottom-5 right-5 z-50 pointer-events-none opacity-0 translate-y-3 transition-all duration-300">
+    <div class="glass-panel px-4 py-3 rounded-xl border border-neonCyan/50 flex items-center gap-3 shadow-2xl">
+      <i class="fa-solid fa-circle-check text-neonCyan"></i>
+      <span id="toastMessage" class="text-xs sm:text-sm font-medium text-white">Saved to Daily Listening Log!</span>
+    </div>
+  </div>
+
+  <!-- Studio Editor Modal (Add/Edit Primary Genre & Subgenre) -->
+  <div id="editorModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-obsidian/80 backdrop-blur-md">
+    <div class="glass-panel w-full max-w-lg rounded-2xl p-6 border border-white/15 shadow-2xl relative animate-fadeIn">
+      <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-5">
+        <div class="flex items-center gap-2.5">
+          <span id="modalBadge" class="px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-neonCyan text-obsidian">STUDIO EDITOR</span>
+          <h3 id="modalTitle" class="font-display text-lg font-bold text-white">Edit Genre</h3>
+        </div>
+        <button id="closeModalBtn" type="button" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="editorForm" class="space-y-4">
+        <!-- Primary Genre Fields -->
+        <div id="primaryFields" class="space-y-4 hidden">
+          <div>
+            <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Primary Genre Name *</label>
+            <input type="text" id="inputPrimaryName" placeholder="e.g., Jazz & Fusion" class="w-full px-3.5 py-2.5 rounded-xl bg-obsidian/90 border border-white/15 text-white text-sm focus:outline-none focus:border-neonCyan" />
+          </div>
+          <div>
+            <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Sonic Tagline</label>
+            <input type="text" id="inputPrimaryTagline" placeholder="e.g., Improvised brass, syncopated rhythms & warm keys" class="w-full px-3.5 py-2.5 rounded-xl bg-obsidian/90 border border-white/15 text-white text-sm focus:outline-none focus:border-neonCyan" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Icon Style</label>
+              <select id="inputPrimaryIcon" class="w-full px-3.5 py-2.5 rounded-xl bg-obsidian/90 border border-white/15 text-white text-sm focus:outline-none focus:border-neonCyan">
+                <option value="fa-wave-square">Wave / Synth</option>
+                <option value="fa-guitar">Guitar / Strings</option>
+                <option value="fa-microphone-lines">Microphone / Vocal</option>
+                <option value="fa-record-vinyl">Vinyl Record</option>
+                <option value="fa-bolt-lightning">Lightning / High Voltage</option>
+                <option value="fa-wand-magic-sparkles">Sparkles / Indie</option>
+                <option value="fa-film">Cinema / Score</option>
+                <option value="fa-compass">Compass / Roots</option>
+                <option value="fa-Compact-disc">CD / Turntable</option>
+                <option value="fa-drum">Drums / Rhythm</option>
+                <option value="fa-headphones">Headphones / Studio</option>
+                <option value="fa-fire">Fire / Heat</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Neon Accent Color</label>
+              <select id="inputPrimaryAccent" class="w-full px-3.5 py-2.5 rounded-xl bg-obsidian/90 border border-white/15 text-white text-sm focus:outline-none focus:border-neonCyan">
+                <option value="#00f0ff">Neon Cyan (#00f0ff)</option>
+                <option value="#ff007f">Neon Pink (#ff007f)</option>
+                <option value="#ffb703">Neon Amber (#ffb703)</option>
+                <option value="#10b981">Emerald Pulse (#10b981)</option>
+                <option value="#a855f7">Electric Violet (#a855f7)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subgenre Fields -->
+        <div id="subgenreFields" class="space-y-4 hidden">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Subgenre Full Name *</label>
+              <input type="text" id="inputSubName" placeholder="e.g., Liquid Drum & Bass" class="w-full px-3.5 py-2.5 rounded-xl bg-obsidian/90 border border-white/15 text-white text-sm focus:outline-none focus:border-neonCyan" />
+            </div>
+            <div>
+              <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Wheel Short Label *</label>
+              <input type="text" id="inputSubShort" maxlength="22" placeholder="e.g., Liquid DnB" class="w-full px-3.5 py-2.5 rounded-xl bg-obsidian/90 border border-white/15 text-white text-sm focus:outline-none focus:border-neonCyan" />
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">BPM / Tempo</label>
+              <input type="text" id="inputSubBpm" placeholder="170 – 175 BPM" class="w-full px-3.5 py-2.5 rounded-xl bg-obsidian/90 border border-white/15 text-white text-sm focus:outline-none focus:border-neonCyan" />
+            </div>
+            <div>
+              <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Sonic Mood</label>
+              <input type="text" id="inputSubMood" placeholder="Flowing & Atmospheric" class="w-full px-3.5 py-2.5 rounded-xl bg-obsidian/90 border border-white/15 text-white text-sm focus:outline-none focus:border-neonCyan" />
+            </div>
+            <div>
+              <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Wheel Slice Color</label>
+              <select id="inputSubColor" class="w-full px-3.5 py-2.5 rounded-xl bg-obsidian/90 border border-white/15 text-white text-sm focus:outline-none focus:border-neonCyan">
+                <option value="#00f0ff">Neon Cyan</option>
+                <option value="#ff007f">Neon Pink</option>
+                <option value="#ffb703">Neon Amber</option>
+                <option value="#10b981">Emerald Pulse</option>
+                <option value="#a855f7">Electric Violet</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Sonic Texture Description</label>
+            <textarea id="inputSubTexture" rows="2" placeholder="Describe the instruments, production style, and atmosphere..." class="w-full px-3.5 py-2 rounded-xl bg-obsidian/90 border border-white/15 text-white text-sm focus:outline-none focus:border-neonCyan"></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Streaming Search Query</label>
+            <input type="text" id="inputSubQuery" placeholder="e.g., Liquid Drum and Bass Mix" class="w-full px-3.5 py-2.5 rounded-xl bg-obsidian/90 border border-white/15 text-white text-sm focus:outline-none focus:border-neonCyan" />
+          </div>
+        </div>
+
+        <p id="modalErrorMsg" class="text-xs font-mono text-rose-400 hidden"></p>
+
+        <div class="flex items-center justify-between pt-3 border-t border-white/10">
+          <button type="button" id="deleteEntityBtn" class="px-3.5 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/30 border border-rose-500/40 text-rose-400 font-display font-bold text-xs transition hidden items-center gap-1.5">
+            <i class="fa-solid fa-trash-can"></i>
+            <span>Delete</span>
+          </button>
+          <div class="flex items-center gap-2 ml-auto">
+            <button type="button" id="cancelModalBtn" class="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-mono uppercase transition">
+              Cancel
+            </button>
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-neonCyan hover:bg-neonCyan/90 text-obsidian font-display font-bold text-xs sm:text-sm uppercase tracking-wide transition shadow-lg">
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Application Logic -->
+  <script>
+    /********************************************************************
+     * 1. DATASET: DEFAULT PRIMARY GENRES & SUBGENRES + CUSTOM PERSISTENCE
+     ********************************************************************/
+    const DEFAULT_GENRE_CATALOG = [
+      {
+        id: 'edm',
+        name: 'Electronic / EDM',
+        icon: 'fa-wave-square',
+        tagline: 'Synthesizers, club basslines & festival euphoria',
+        accent: '#00f0ff',
+        subgenres: [
+          {
+            name: 'Melodic Bass & Dubstep',
+            shortLabel: 'Melodic Bass',
+            bpm: '140 – 150 BPM',
+            mood: 'Euphoric & Heavy',
+            texture: 'Lush supersaw chords, emotional vocal chops, and thunderous bass drops balancing beauty and grit.',
+            color: '#00f0ff',
+            query: 'Melodic Bass Dubstep Mix'
+          },
+          {
+            name: 'Progressive & Electro House',
+            shortLabel: 'Prog & Electro House',
+            bpm: '124 – 130 BPM',
+            mood: 'Driving & Uplifting',
+            texture: 'Four-on-the-floor festival grooves, hypnotic plucks, and soaring melodic tension-and-release builds.',
+            color: '#ff007f',
+            query: 'Progressive Electro House Mix'
+          },
+          {
+            name: 'Trap & Bass Music',
+            shortLabel: 'Trap & Bass',
+            bpm: '140 – 160 BPM',
+            mood: 'Gritty & Kinetic',
+            texture: 'Subterranean 808 sub-bass, crisp rapid-fire hi-hat triplets, and razor-sharp experimental sound design.',
+            color: '#ffb703',
+            query: 'EDM Trap Bass Music Mix'
+          }
+        ]
+      },
+      {
+        id: 'rock',
+        name: 'Rock & Alternative',
+        icon: 'fa-guitar',
+        tagline: 'Overdriven tube amps, raw emotion & anthemic hooks',
+        accent: '#ff007f',
+        subgenres: [
+          {
+            name: 'Post-Hardcore & Emo',
+            shortLabel: 'Post-Hardcore / Emo',
+            bpm: '135 – 170 BPM',
+            mood: 'Cathartic & Raw',
+            texture: 'Intricate dual-guitar melodies, dynamic loud-quiet-loud shifts, and urgent, impassioned vocals.',
+            color: '#ff007f',
+            query: 'Post-Hardcore Emo Essentials'
+          },
+          {
+            name: 'Alt-Rock & 90s/00s',
+            shortLabel: '90s/00s Alt-Rock',
+            bpm: '110 – 135 BPM',
+            mood: 'Nostalgic & Punchy',
+            texture: 'Crunchy distortion pedals, driving acoustic-electric layers, and arena-ready singalong choruses.',
+            color: '#00f0ff',
+            query: '90s 2000s Alternative Rock Classics'
+          },
+          {
+            name: 'Art & Indie Rock',
+            shortLabel: 'Art & Indie Rock',
+            bpm: '105 – 130 BPM',
+            mood: 'Angular & Eclectic',
+            texture: 'Shimmering spring reverb, propulsive post-punk basslines, and adventurous studio textures.',
+            color: '#ffb703',
+            query: 'Art Rock Indie Rock Mix'
+          }
+        ]
+      },
+      {
+        id: 'hiphop',
+        name: 'Hip-Hop & Rap',
+        icon: 'fa-microphone-lines',
+        tagline: 'Booming 808s, crates of soul samples & sharp cadence',
+        accent: '#ffb703',
+        subgenres: [
+          {
+            name: 'Lyrical & Conscious',
+            shortLabel: 'Lyrical & Conscious',
+            bpm: '85 – 98 BPM',
+            mood: 'Reflective & Sharp',
+            texture: 'Warm vinyl soul samples, jazzy horn loops, unquantized boom-bap swing, and dense storytelling.',
+            color: '#ffb703',
+            query: 'Lyrical Conscious Hip Hop Jazz Rap'
+          },
+          {
+            name: 'Experimental & Alt-Rap',
+            shortLabel: 'Experimental Rap',
+            bpm: '90 – 130 BPM',
+            mood: 'Avant-Garde & Bold',
+            texture: 'Glitchy industrial percussion, warped synthesizers, and boundary-pushing vocal deliveries.',
+            color: '#00f0ff',
+            query: 'Experimental Alternative Hip Hop'
+          },
+          {
+            name: 'Modern Trap & Bounce',
+            shortLabel: 'Modern Trap',
+            bpm: '130 – 155 BPM',
+            mood: 'High-Octane & Swagger',
+            texture: 'Hard-hitting trunk sub-bass, hypnotic minor-key bells, and infectious rhythmic bounce.',
+            color: '#ff007f',
+            query: 'Modern Trap Rap Bangers'
+          }
+        ]
+      },
+      {
+        id: 'funk',
+        name: 'Funk & Soul',
+        icon: 'fa-record-vinyl',
+        tagline: 'Deep pocket basslines, warm brass & analog groove',
+        accent: '#00f0ff',
+        subgenres: [
+          {
+            name: 'Psychedelic Groove',
+            shortLabel: 'Psych Groove',
+            bpm: '95 – 115 BPM',
+            mood: 'Hypnotic & Warm',
+            texture: 'Wah-wah rhythm guitars, vintage spring reverb, analog tape saturation, and laid-back global funk.',
+            color: '#00f0ff',
+            query: 'Psychedelic Funk Groove Soul'
+          },
+          {
+            name: 'Neo-Soul & R&B',
+            shortLabel: 'Neo-Soul & R&B',
+            bpm: '75 – 95 BPM',
+            mood: 'Velvety & Intimate',
+            texture: 'Warm Fender Rhodes chords, behind-the-beat pocket drums, and silky multi-layered vocal harmonies.',
+            color: '#ff007f',
+            query: 'Neo Soul Modern R&B Vibes'
+          },
+          {
+            name: 'Classic Funk & Disco',
+            shortLabel: 'Classic Funk / Disco',
+            bpm: '112 – 126 BPM',
+            mood: 'Infectious & Radiant',
+            texture: 'Punchy horn stabs, syncopated slap bass, four-on-the-floor hi-hats, and vintage dancefloor joy.',
+            color: '#ffb703',
+            query: '70s Classic Funk Disco Groove'
+          }
+        ]
+      },
+      {
+        id: 'metal',
+        name: 'Metal & Heavy',
+        icon: 'fa-bolt-lightning',
+        tagline: 'Down-tuned riffs, polyrhythms & relentless energy',
+        accent: '#ff007f',
+        subgenres: [
+          {
+            name: 'Progressive & Atmospheric Metal',
+            shortLabel: 'Prog & Atmos Metal',
+            bpm: '100 – 145 BPM',
+            mood: 'Colossal & Intricate',
+            texture: 'Shifting odd-time polyrhythms, djent-inspired low-end precision, and soaring atmospheric clean sections.',
+            color: '#00f0ff',
+            query: 'Progressive Atmospheric Metal Mix'
+          },
+          {
+            name: 'Nu-Metal & Heavy Alt',
+            shortLabel: 'Nu-Metal & Heavy Alt',
+            bpm: '95 – 130 BPM',
+            mood: 'Groove-Heavy & Raw',
+            texture: 'Down-tuned 7-string bounce riffs, turntable textures, industrial samples, and explosive hooks.',
+            color: '#ffb703',
+            query: 'Nu Metal Heavy Alternative Mix'
+          },
+          {
+            name: 'Metalcore & Hardcore',
+            shortLabel: 'Metalcore & Hardcore',
+            bpm: '140 – 185 BPM',
+            mood: 'Relentless & Visceral',
+            texture: 'Crushing halftime breakdowns, machine-gun double-kick drums, and high-voltage metallic intensity.',
+            color: '#ff007f',
+            query: 'Modern Metalcore Hardcore Essentials'
+          }
+        ]
+      },
+      {
+        id: 'pop',
+        name: 'Pop & Indie',
+        icon: 'fa-wand-magic-sparkles',
+        tagline: 'Shimmering hooks, retro synths & bedroom daydreaming',
+        accent: '#ffb703',
+        subgenres: [
+          {
+            name: 'Synth-Pop & New Wave',
+            shortLabel: 'Synth-Pop / New Wave',
+            bpm: '115 – 130 BPM',
+            mood: 'Neon & Melancholic',
+            texture: 'Lush analog Juno pads, gated 80s snare reverb, driving arpeggios, and midnight highway euphoria.',
+            color: '#00f0ff',
+            query: 'Synthpop New Wave Dream Pop'
+          },
+          {
+            name: 'Bedroom & Indie Pop',
+            shortLabel: 'Bedroom & Indie Pop',
+            bpm: '95 – 118 BPM',
+            mood: 'Dreamy & Sun-Drenched',
+            texture: 'Chorus-drenched jangle guitars, warm cassette warble, and effortless, intimate melodies.',
+            color: '#ffb703',
+            query: 'Bedroom Pop Indie Pop Chill'
+          },
+          {
+            name: 'Modern Pop Anthems',
+            shortLabel: 'Modern Pop Anthems',
+            bpm: '118 – 128 BPM',
+            mood: 'Glossy & Electrifying',
+            texture: 'Crystal-clear vocal stacks, funky sidechained basslines, and undeniable earworm hooks.',
+            color: '#ff007f',
+            query: 'Modern Alt Pop Upbeat Anthems'
+          }
+        ]
+      },
+      {
+        id: 'cinematic',
+        name: 'Cinematic & Instrumental',
+        icon: 'fa-film',
+        tagline: 'Widescreen scores, cyberpunk synths & study beats',
+        accent: '#00f0ff',
+        subgenres: [
+          {
+            name: 'Epic Film & Game Scores',
+            shortLabel: 'Film & Game Scores',
+            bpm: '70 – 140 BPM',
+            mood: 'Grandiose & Heroic',
+            texture: 'Sweeping orchestral string ensembles, thunderous taiko percussion, brass swells, and hybrid synths.',
+            color: '#ffb703',
+            query: 'Epic Film Game Soundtrack Instrumental'
+          },
+          {
+            name: 'Dark Synthwave & Cyberpunk',
+            shortLabel: 'Dark Synthwave',
+            bpm: '100 – 125 BPM',
+            mood: 'Dystopian & Nocturnal',
+            texture: 'Gritty sawtooth basslines, retro-futuristic analog leads, and rain-slicked neon atmosphere.',
+            color: '#ff007f',
+            query: 'Dark Synthwave Cyberpunk Darksynth Mix'
+          },
+          {
+            name: 'Lo-Fi & Chillhop',
+            shortLabel: 'Lo-Fi & Chillhop',
+            bpm: '70 – 88 BPM',
+            mood: 'Cozy & Meditative',
+            texture: 'Crackling vinyl dust, mellow jazz guitar loops, detuned upright piano, and head-nodding beats.',
+            color: '#00f0ff',
+            query: 'Lofi Hip Hop Chillhop Beats'
+          }
+        ]
+      },
+      {
+        id: 'folk',
+        name: 'Folk & Americana',
+        icon: 'fa-compass',
+        tagline: 'Weathered storytelling, acoustic warmth & roots grit',
+        accent: '#ffb703',
+        subgenres: [
+          {
+            name: 'Dark & Outlaw Country',
+            shortLabel: 'Outlaw & Dark Country',
+            bpm: '85 – 115 BPM',
+            mood: 'Gritty & Cinematic',
+            texture: 'Twangy baritone guitars, stomping chains-and-boots percussion, and brooding frontier storytelling.',
+            color: '#ffb703',
+            query: 'Dark Country Outlaw Americana'
+          },
+          {
+            name: 'Indie Folk & Acoustic',
+            shortLabel: 'Indie Folk & Acoustic',
+            bpm: '90 – 120 BPM',
+            mood: 'Earthy & Heartfelt',
+            texture: 'Intricate fingerpicked acoustic guitars, banjo accents, and soaring cabin-recorded vocal harmonies.',
+            color: '#00f0ff',
+            query: 'Indie Folk Acoustic Roots Mix'
+          },
+          {
+            name: 'Southern Rock & Roots',
+            shortLabel: 'Southern Rock & Roots',
+            bpm: '110 – 135 BPM',
+            mood: 'Soulful & Road-Worn',
+            texture: 'Weeping slide guitar solos, swirling Hammond B3 organ, and blues-soaked highway rhythm.',
+            color: '#ff007f',
+            query: 'Southern Rock Roots Blues Revival'
+          }
+        ]
+      }
+    ];
+
+    const CATALOG_STORAGE_KEY = 'daily_frequency_custom_catalog_v1';
+    let GENRE_CATALOG = JSON.parse(JSON.stringify(DEFAULT_GENRE_CATALOG));
+
+    function loadCatalogFromStorage() {
+      try {
+        const saved = localStorage.getItem(CATALOG_STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            GENRE_CATALOG = parsed;
+          }
+        }
+      } catch (e) {
+        GENRE_CATALOG = JSON.parse(JSON.stringify(DEFAULT_GENRE_CATALOG));
+      }
+    }
+
+    function saveCatalogToStorage() {
+      try {
+        localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(GENRE_CATALOG));
+      } catch (e) {}
+    }
+
+    /********************************************************************
+     * 2. WEB AUDIO SYNTHESIZER (CRISP TICKS, UI CLICKS & VICTORY CHORD)
+     ********************************************************************/
+    class StudioAudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) {
+            this.ctx = new AudioCtx();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playTick(pitchMultiplier = 1) {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'triangle';
+        const baseFreq = 580 * pitchMultiplier;
+        osc.frequency.setValueAtTime(baseFreq, now);
+        osc.frequency.exponentialRampToValueAtTime(140, now + 0.038);
+
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.038);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.04);
+      }
+
+      playSelectClick() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(420, now);
+        osc.frequency.exponentialRampToValueAtTime(840, now + 0.045);
+
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.05);
+      }
+
+      playVictoryChord() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        // Lush Major 9th synth arpeggio chord (C5, E5, G5, B5, D6)
+        const freqs = [523.25, 659.25, 783.99, 987.77, 1174.66];
+        freqs.forEach((f, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc.type = idx % 2 === 0 ? 'triangle' : 'sine';
+          const startTime = now + idx * 0.045;
+          osc.frequency.setValueAtTime(f, startTime);
+
+          gain.gain.setValueAtTime(0.001, startTime);
+          gain.gain.linearRampToValueAtTime(0.12, startTime + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0008, startTime + 0.65);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start(startTime);
+          osc.stop(startTime + 0.7);
+        });
+      }
+    }
+
+    const soundEngine = new StudioAudioEngine();
+
+    /********************************************************************
+     * 3. APPLICATION STATE
+     ********************************************************************/
+    const STORAGE_KEY = 'daily_frequency_genre_log_v1';
+
+    let state = {
+      selectedGenreIndex: 0,
+      selectedSubgenreIndex: 0,
+      spinnerMode: 'wheel', // 'wheel' | 'slot'
+      isSpinning: false,
+      hasSpunCurrentSession: false,
+      // Roulette Wheel Physics State
+      wheelAngle: 0,
+      lastPegIndex: -1,
+      pointerDeflection: 0,
+      // Slot Machine Physics State
+      slotOffset: 0,
+      lastSlotIndex: -1,
+      // Daily Log History
+      historyLog: [],
+      // Editor Modal State
+      editorContext: null // { type: 'primary'|'subgenre', mode: 'add'|'edit', genreIndex: number, subIndex?: number }
+    };
+
+    function getWheelSlicesForGenre(genre) {
+      const subs = genre.subgenres || [];
+      if (subs.length === 0) return [];
+      // Repeat small counts (1-3) twice on the wheel for balanced rotational symmetry
+      const repeatFactor = subs.length <= 3 ? 2 : 1;
+      const slices = [];
+      for (let r = 0; r < repeatFactor; r++) {
+        subs.forEach((sub, idx) => {
+          slices.push({ sub, subIndex: idx });
+        });
+      }
+      return slices;
+    }
+
+    /********************************************************************
+     * 4. INITIALIZATION & DATE SETUP
+     ********************************************************************/
+    function getTodayDateString() {
+      const now = new Date();
+      return now.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
+
+    function initApp() {
+      // Display Today's Date in Studio Header
+      document.getElementById('currentDateDisplay').textContent =
+        `SESSION // ${getTodayDateString().toUpperCase()}`;
+
+      // Load custom or default catalog + 7-day listening log
+      loadCatalogFromStorage();
+      loadListeningLog();
+
+      // Render Primary Genre Grid & Initial Subgenres
+      renderGenreGrid();
+      renderSubgenrePreview();
+      updateResultCard(GENRE_CATALOG[state.selectedGenreIndex], GENRE_CATALOG[state.selectedGenreIndex].subgenres[0], false);
+
+      // Setup Canvases & Resize Listeners
+      setupWheelCanvas();
+      setupSlotCanvas();
+      setupConfettiCanvas();
+
+      window.addEventListener('resize', () => {
+        setupWheelCanvas();
+        setupSlotCanvas();
+        resizeConfettiCanvas();
+      });
+
+      // Attach UI Event Listeners
+      attachEventListeners();
+    }
+
+    /********************************************************************
+     * 5. RENDER STEP 1 (PRIMARY GENRES) & STEP 2 (SUBGENRES)
+     ********************************************************************/
+    function renderGenreGrid() {
+      const grid = document.getElementById('genreGrid');
+      grid.innerHTML = '';
+
+      GENRE_CATALOG.forEach((genre, idx) => {
+        const isActive = idx === state.selectedGenreIndex;
+        const card = document.createElement('div');
+        card.dataset.index = idx;
+        card.className = `genre-card cursor-pointer text-left p-4 rounded-xl border border-white/10 bg-white/[0.03] flex flex-col justify-between gap-3 ${
+          isActive ? 'active' : ''
+        }`;
+
+        const subBadges = genre.subgenres
+          .map(
+            (sub) =>
+              `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-obsidian/80 text-gray-300 border border-white/10 truncate">${sub.shortLabel}</span>`
+          )
+          .join('');
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2 w-full">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center text-base shrink-0 border border-white/15"
+                   style="background: ${genre.accent}18; color: ${genre.accent};">
+                <i class="fa-solid ${genre.icon}"></i>
+              </div>
+              <div class="min-w-0">
+                <h3 class="font-display font-bold text-sm sm:text-base text-white leading-snug truncate">${genre.name}</h3>
+                <p class="text-xs text-gray-400 line-clamp-1">${genre.tagline}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button type="button" data-edit-primary="${idx}" title="Edit Primary Genre"
+                      class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-gray-400 hover:text-white flex items-center justify-center text-xs transition">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <span class="w-2.5 h-2.5 rounded-full shrink-0 transition ${
+                isActive ? 'bg-neonCyan shadow-[0_0_10px_#00f0ff]' : 'bg-white/15'
+              }"></span>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1.5 w-full pt-2 border-t border-white/5">
+            ${subBadges}
+          </div>
+        `;
+
+        card.addEventListener('click', (e) => {
+          if (state.isSpinning) return;
+          const editBtn = e.target.closest('[data-edit-primary]');
+          if (editBtn) {
+            e.stopPropagation();
+            soundEngine.playSelectClick();
+            openPrimaryModal('edit', idx);
+            return;
+          }
+          soundEngine.playSelectClick();
+          selectPrimaryGenre(idx);
+        });
+
+        grid.appendChild(card);
+      });
+    }
+
+    function selectPrimaryGenre(index) {
+      if (index < 0 || index >= GENRE_CATALOG.length) index = 0;
+      state.selectedGenreIndex = index;
+      state.selectedSubgenreIndex = 0;
+      const genre = GENRE_CATALOG[index];
+
+      document.getElementById('loadedGenreTitle').textContent = genre.name;
+      document.getElementById('deckActiveGenreName').textContent = genre.name;
+      document.getElementById('liveSpinReadout').textContent = 'READY TO SPIN';
+
+      renderGenreGrid();
+      renderSubgenrePreview();
+      drawRouletteWheel();
+      drawSlotReel();
+      if (genre.subgenres.length > 0) {
+        updateResultCard(genre, genre.subgenres[0], false);
+      }
+    }
+
+    function renderSubgenrePreview() {
+      const container = document.getElementById('subgenrePreviewList');
+      const genre = GENRE_CATALOG[state.selectedGenreIndex];
+      container.innerHTML = '';
+
+      const count = genre.subgenres.length;
+      const prob = count > 0 ? (100 / count).toFixed(1) : '0';
+      document.getElementById('subgenreCountBadge').textContent = count;
+      document.getElementById('subgenreProbBadge').textContent = `${prob}% PROBABILITY EACH`;
+      document.getElementById('loadedGenreTitle').textContent = genre.name;
+      document.getElementById('deckActiveGenreName').textContent = genre.name;
+
+      genre.subgenres.forEach((sub, idx) => {
+        const isCurrentWinner = state.hasSpunCurrentSession && idx === state.selectedSubgenreIndex;
+        const item = document.createElement('div');
+        item.className = `p-3.5 rounded-xl border transition flex flex-col justify-between ${
+          isCurrentWinner
+            ? 'bg-white/[0.08] border-neonCyan shadow-[0_0_20px_rgba(0,240,255,0.18)]'
+            : 'bg-obsidian/60 border-white/10'
+        }`;
+
+        item.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between gap-1 mb-1.5">
+              <span class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded"
+                    style="background: ${sub.color}22; color: ${sub.color}; border: 1px solid ${sub.color}55;">
+                OPTION 0${idx + 1}
+              </span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] font-mono text-gray-400">${sub.bpm}</span>
+                <button type="button" data-edit-sub="${idx}" title="Edit Subgenre"
+                        class="w-6 h-6 rounded-md bg-white/5 hover:bg-white/15 border border-white/10 text-gray-400 hover:text-white flex items-center justify-center text-[10px] transition">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+              </div>
+            </div>
+            <h4 class="font-display font-bold text-sm text-white leading-snug mb-1">${sub.name}</h4>
+            <p class="text-xs text-gray-400 line-clamp-2">${sub.texture}</p>
+          </div>
+          <div class="mt-3 pt-2 border-t border-white/5 flex items-center justify-between text-[11px] font-mono">
+            <span class="text-gray-400">MOOD:</span>
+            <span class="text-gray-200 font-semibold truncate max-w-[130px]">${sub.mood}</span>
+          </div>
+        `;
+
+        const editSubBtn = item.querySelector('[data-edit-sub]');
+        editSubBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (state.isSpinning) return;
+          soundEngine.playSelectClick();
+          openSubgenreModal('edit', state.selectedGenreIndex, idx);
+        });
+
+        container.appendChild(item);
+      });
+    }
+
+    /********************************************************************
+     * 6. CANVAS ROULETTE WHEEL (DYNAMIC SLICES FOR ANY SUBGENRE COUNT)
+     ********************************************************************/
+    let wheelCanvas, wheelCtx;
+
+    function setupWheelCanvas() {
+      wheelCanvas = document.getElementById('rouletteCanvas');
+      if (!wheelCanvas) return;
+      const rect = wheelCanvas.parentElement.getBoundingClientRect();
+      const size = Math.max(260, Math.min(rect.width, 330));
+      const dpr = window.devicePixelRatio || 1;
+
+      wheelCanvas.width = size * dpr;
+      wheelCanvas.height = size * dpr;
+      wheelCtx = wheelCanvas.getContext('2d');
+      wheelCtx.scale(dpr, dpr);
+
+      drawRouletteWheel();
+    }
+
+    function drawRouletteWheel() {
+      if (!wheelCtx || !wheelCanvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      const size = wheelCanvas.width / dpr;
+      const cx = size / 2;
+      const cy = size / 2;
+      const outerRadius = size / 2 - 10;
+
+      wheelCtx.clearRect(0, 0, size, size);
+
+      const genre = GENRE_CATALOG[state.selectedGenreIndex];
+      const wheelSlices = getWheelSlicesForGenre(genre);
+      const totalSlices = wheelSlices.length;
+      if (totalSlices === 0) return;
+      const sliceArc = (Math.PI * 2) / totalSlices;
+
+      // Outer studio bezel ring
+      wheelCtx.save();
+      wheelCtx.beginPath();
+      wheelCtx.arc(cx, cy, outerRadius + 5, 0, Math.PI * 2);
+      wheelCtx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+      wheelCtx.lineWidth = 4;
+      wheelCtx.stroke();
+      wheelCtx.restore();
+
+      for (let i = 0; i < totalSlices; i++) {
+        const { sub, subIndex } = wheelSlices[i];
+        const startAngle = state.wheelAngle + i * sliceArc;
+        const endAngle = startAngle + sliceArc;
+
+        // Slice Fill
+        wheelCtx.save();
+        wheelCtx.beginPath();
+        wheelCtx.moveTo(cx, cy);
+        wheelCtx.arc(cx, cy, outerRadius, startAngle, endAngle);
+        wheelCtx.closePath();
+
+        // Rich dark radial tint with neon edge accent
+        const grad = wheelCtx.createRadialGradient(cx, cy, 20, cx, cy, outerRadius);
+        grad.addColorStop(0, '#12141c');
+        grad.addColorStop(0.65, '#171b26');
+        grad.addColorStop(1, sub.color + '44');
+        wheelCtx.fillStyle = grad;
+        wheelCtx.fill();
+
+        // Slice Neon Border
+        wheelCtx.lineWidth = 2;
+        wheelCtx.strokeStyle = sub.color;
+        wheelCtx.stroke();
+
+        // Colored Outer Arc Band
+        wheelCtx.beginPath();
+        wheelCtx.arc(cx, cy, outerRadius - 4, startAngle + 0.03, endAngle - 0.03);
+        wheelCtx.strokeStyle = sub.color;
+        wheelCtx.lineWidth = 6;
+        wheelCtx.stroke();
+
+        // Slice Text Label
+        wheelCtx.translate(cx, cy);
+        wheelCtx.rotate(startAngle + sliceArc / 2);
+        wheelCtx.textAlign = 'right';
+        wheelCtx.fillStyle = '#ffffff';
+        const fontSize = totalSlices > 8 ? 10 : 11.5;
+        wheelCtx.font = `700 ${fontSize}px "Space Grotesk", sans-serif`;
+        wheelCtx.fillText(sub.shortLabel.toUpperCase(), outerRadius - 18, 4);
+
+        // Option Number Tag
+        wheelCtx.fillStyle = sub.color;
+        wheelCtx.font = '700 9.5px "JetBrains Mono", monospace';
+        wheelCtx.fillText(`0${subIndex + 1}`, outerRadius - 18, -9);
+        wheelCtx.restore();
+      }
+
+      // Draw Perimeter Pegs
+      for (let i = 0; i < totalSlices; i++) {
+        const pegAngle = state.wheelAngle + i * sliceArc;
+        const px = cx + Math.cos(pegAngle) * (outerRadius - 2);
+        const py = cy + Math.sin(pegAngle) * (outerRadius - 2);
+
+        wheelCtx.save();
+        wheelCtx.beginPath();
+        wheelCtx.arc(px, py, 4.5, 0, Math.PI * 2);
+        wheelCtx.fillStyle = '#ffffff';
+        wheelCtx.shadowColor = '#00f0ff';
+        wheelCtx.shadowBlur = 8;
+        wheelCtx.fill();
+        wheelCtx.restore();
+      }
+
+      // Center Studio Hub
+      wheelCtx.save();
+      wheelCtx.beginPath();
+      wheelCtx.arc(cx, cy, 34, 0, Math.PI * 2);
+      wheelCtx.fillStyle = '#0b0c10';
+      wheelCtx.fill();
+      wheelCtx.lineWidth = 3;
+      wheelCtx.strokeStyle = '#00f0ff';
+      wheelCtx.shadowColor = '#00f0ff';
+      wheelCtx.shadowBlur = 12;
+      wheelCtx.stroke();
+
+      wheelCtx.beginPath();
+      wheelCtx.arc(cx, cy, 12, 0, Math.PI * 2);
+      wheelCtx.fillStyle = '#ff007f';
+      wheelCtx.fill();
+      wheelCtx.restore();
+    }
+
+    /********************************************************************
+     * 7. CANVAS KINETIC SLOT MACHINE REEL CYCLER
+     ********************************************************************/
+    let slotCanvas, slotCtx;
+    const SLOT_ITEM_HEIGHT = 76;
+
+    function setupSlotCanvas() {
+      slotCanvas = document.getElementById('slotCanvas');
+      if (!slotCanvas) return;
+      const rect = slotCanvas.parentElement.getBoundingClientRect();
+      const width = Math.max(260, rect.width);
+      const height = 256;
+      const dpr = window.devicePixelRatio || 1;
+
+      slotCanvas.width = width * dpr;
+      slotCanvas.height = height * dpr;
+      slotCtx = slotCanvas.getContext('2d');
+      slotCtx.scale(dpr, dpr);
+
+      drawSlotReel();
+    }
+
+    function drawSlotReel() {
+      if (!slotCtx || !slotCanvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      const width = slotCanvas.width / dpr;
+      const height = slotCanvas.height / dpr;
+      const centerY = height / 2;
+
+      slotCtx.clearRect(0, 0, width, height);
+
+      const genre = GENRE_CATALOG[state.selectedGenreIndex];
+      const subs = genre.subgenres;
+      const subCount = subs.length;
+      if (subCount === 0) return;
+
+      // Render repeating reel cards vertically around centerY
+      for (let offsetIdx = -3; offsetIdx <= 3; offsetIdx++) {
+        const baseIndex = Math.floor(state.slotOffset / SLOT_ITEM_HEIGHT);
+        const itemIndex = ((baseIndex + offsetIdx) % subCount + subCount) % subCount;
+        const sub = subs[itemIndex];
+
+        const fractionalOffset = state.slotOffset % SLOT_ITEM_HEIGHT;
+        const yPos = centerY + offsetIdx * SLOT_ITEM_HEIGHT - fractionalOffset;
+
+        // Distance from center determines scale and opacity
+        const distFromCenter = Math.abs(yPos - centerY);
+        const normalizedDist = Math.min(1, distFromCenter / (height / 2));
+        const alpha = Math.max(0.18, 1 - normalizedDist * 0.78);
+        const scale = Math.max(0.86, 1 - normalizedDist * 0.14);
+
+        slotCtx.save();
+        slotCtx.translate(width / 2, yPos);
+        slotCtx.scale(scale, scale);
+        slotCtx.globalAlpha = alpha;
+
+        const cardW = width - 48;
+        const cardH = 62;
+
+        // Card Box
+        slotCtx.fillStyle = '#151824';
+        slotCtx.strokeStyle = sub.color;
+        slotCtx.lineWidth = distFromCenter < 28 ? 2.5 : 1;
+
+        slotCtx.beginPath();
+        slotCtx.roundRect(-cardW / 2, -cardH / 2, cardW, cardH, 12);
+        slotCtx.fill();
+        slotCtx.stroke();
+
+        // Option Tag
+        slotCtx.fillStyle = sub.color;
+        slotCtx.font = '700 10px "JetBrains Mono", monospace';
+        slotCtx.textAlign = 'left';
+        slotCtx.fillText(`CH 0${itemIndex + 1} // ${sub.bpm}`, -cardW / 2 + 14, -8);
+
+        // Subgenre Name
+        slotCtx.fillStyle = '#ffffff';
+        slotCtx.font = '700 15px "Space Grotesk", sans-serif';
+        slotCtx.fillText(sub.name, -cardW / 2 + 14, 14);
+
+        slotCtx.restore();
+      }
+    }
+
+    /********************************************************************
+     * 8. SPIN PHYSICS ENGINE (SYNCHRONIZED FOR BOTH WHEEL & SLOT REEL)
+     ********************************************************************/
+    function triggerSubgenreSpin() {
+      if (state.isSpinning) return;
+      const genre = GENRE_CATALOG[state.selectedGenreIndex];
+      const subCount = genre.subgenres.length;
+      if (subCount === 0) return;
+
+      state.isSpinning = true;
+
+      const spinBtn = document.getElementById('spinButton');
+      const randomPrimaryBtn = document.getElementById('randomPrimaryBtn');
+      const fullSurpriseBtn = document.getElementById('fullSurpriseBtn');
+      const pointerEl = document.getElementById('wheelPointer');
+
+      spinBtn.disabled = true;
+      randomPrimaryBtn.disabled = true;
+      fullSurpriseBtn.disabled = true;
+
+      // Randomly pick winning subgenre index with equal probability
+      const winningSubIndex = Math.floor(Math.random() * subCount);
+      const wheelSlices = getWheelSlicesForGenre(genre);
+      const totalSlices = wheelSlices.length;
+
+      // Find all wheel slices matching winningSubIndex and pick one at random
+      const matchingSliceIndices = [];
+      wheelSlices.forEach((s, idx) => {
+        if (s.subIndex === winningSubIndex) matchingSliceIndices.push(idx);
+      });
+      const winningSliceIndex =
+        matchingSliceIndices[Math.floor(Math.random() * matchingSliceIndices.length)];
+
+      // Calculate target wheel angle so that winningSliceIndex lands under the top pointer (-Math.PI / 2)
+      const sliceArc = (Math.PI * 2) / totalSlices;
+      const sliceInternalJitter = (Math.random() - 0.5) * (sliceArc * 0.55);
+      const pointerAngle = -Math.PI / 2;
+
+      const targetSliceCenterAngle = pointerAngle - (winningSliceIndex + 0.5) * sliceArc + sliceInternalJitter;
+      const currentNormalized = ((state.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+      const targetNormalized = ((targetSliceCenterAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+
+      let deltaAngle = targetNormalized - currentNormalized;
+      if (deltaAngle <= 0) deltaAngle += Math.PI * 2;
+
+      // Spin 6 to 8 full rotations plus deltaAngle
+      const extraRotations = (6 + Math.floor(Math.random() * 3)) * Math.PI * 2;
+      const startWheelAngle = state.wheelAngle;
+      const totalWheelDelta = extraRotations + deltaAngle;
+
+      // Slot machine target calculation so winningSubIndex aligns cleanly at centerY
+      const startSlotOffset = state.slotOffset;
+      const cycleHeight = subCount * SLOT_ITEM_HEIGHT;
+      const currentSlotMod = ((startSlotOffset % cycleHeight) + cycleHeight) % cycleHeight;
+      const targetSlotMod = winningSubIndex * SLOT_ITEM_HEIGHT;
+      let slotDelta = targetSlotMod - currentSlotMod;
+      if (slotDelta <= 0) slotDelta += cycleHeight;
+      const totalSlotDelta = (10 + Math.floor(Math.random() * 4)) * cycleHeight + slotDelta;
+
+      const spinDuration = 3900; // ms
+      const startTime = performance.now();
+
+      function easeOutQuint(t) {
+        return 1 - Math.pow(1 - t, 5);
+      }
+
+      function animateSpin(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, elapsed / spinDuration);
+        const eased = easeOutQuint(progress);
+
+        // Update Wheel Angle
+        state.wheelAngle = startWheelAngle + totalWheelDelta * eased;
+
+        // Update Slot Offset
+        state.slotOffset = startSlotOffset + totalSlotDelta * eased;
+
+        // Detect slice boundary crossing under pointer (-PI/2) for audio ticks & pointer flapper kick
+        const relativeAngle = ((pointerAngle - state.wheelAngle) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+        const currentSlice = Math.floor(relativeAngle / sliceArc) % totalSlices;
+        const currentSubUnderPointer = wheelSlices[currentSlice].subIndex;
+
+        if (currentSlice !== state.lastPegIndex) {
+          state.lastPegIndex = currentSlice;
+          soundEngine.playTick(0.85 + progress * 0.35);
+
+          document.getElementById('liveSpinReadout').textContent =
+            genre.subgenres[currentSubUnderPointer].shortLabel.toUpperCase();
+
+          if (pointerEl) {
+            const kickAngle = Math.max(8, 28 * (1 - progress * 0.7));
+            pointerEl.style.transform = `rotate(-${kickAngle}deg)`;
+            setTimeout(() => {
+              if (pointerEl) pointerEl.style.transform = 'rotate(0deg)';
+            }, 60);
+          }
+        }
+
+        drawRouletteWheel();
+        drawSlotReel();
+
+        if (progress < 1) {
+          requestAnimationFrame(animateSpin);
+        } else {
+          state.isSpinning = false;
+          state.hasSpunCurrentSession = true;
+          state.selectedSubgenreIndex = winningSubIndex;
+
+          spinBtn.disabled = false;
+          randomPrimaryBtn.disabled = false;
+          fullSurpriseBtn.disabled = false;
+
+          const winningSub = genre.subgenres[winningSubIndex];
+          document.getElementById('liveSpinReadout').textContent =
+            `LOCKED: ${winningSub.shortLabel.toUpperCase()}`;
+
+          soundEngine.playVictoryChord();
+          launchConfettiBurst(winningSub.color);
+          renderSubgenrePreview();
+          updateResultCard(genre, winningSub, true);
+        }
+      }
+
+      requestAnimationFrame(animateSpin);
+    }
+
+    /********************************************************************
+     * 9. RANDOM PRIMARY GENRE ("SURPRISE ME") ANIMATION
+     ********************************************************************/
+    function triggerRandomPrimary(autoSpinAfter = false) {
+      if (state.isSpinning) return;
+      state.isSpinning = true;
+
+      const spinBtn = document.getElementById('spinButton');
+      const randomPrimaryBtn = document.getElementById('randomPrimaryBtn');
+      const fullSurpriseBtn = document.getElementById('fullSurpriseBtn');
+
+      spinBtn.disabled = true;
+      randomPrimaryBtn.disabled = true;
+      fullSurpriseBtn.disabled = true;
+
+      const cards = Array.from(document.querySelectorAll('.genre-card'));
+      const totalSteps = 14 + Math.floor(Math.random() * 6);
+      let currentStep = 0;
+
+      function stepHighlight() {
+        cards.forEach((c) => c.classList.remove('roulette-scan'));
+        const idx = currentStep % GENRE_CATALOG.length;
+        cards[idx].classList.add('roulette-scan');
+        soundEngine.playTick(0.75 + (currentStep / totalSteps) * 0.4);
+
+        currentStep++;
+        if (currentStep < totalSteps) {
+          const delay = 45 + Math.pow(currentStep / totalSteps, 2) * 140;
+          setTimeout(stepHighlight, delay);
+        } else {
+          cards.forEach((c) => c.classList.remove('roulette-scan'));
+          const finalGenreIdx = (currentStep - 1) % GENRE_CATALOG.length;
+          state.isSpinning = false;
+          selectPrimaryGenre(finalGenreIdx);
+
+          if (autoSpinAfter) {
+            setTimeout(() => {
+              triggerSubgenreSpin();
+            }, 220);
+          } else {
+            spinBtn.disabled = false;
+            randomPrimaryBtn.disabled = false;
+            fullSurpriseBtn.disabled = false;
+            soundEngine.playSelectClick();
+          }
+        }
+      }
+
+      stepHighlight();
+    }
+
+    /********************************************************************
+     * 10. UPDATE WINNING VIBE CARD & STREAMING SEARCH LINKS
+     ********************************************************************/
+    function updateResultCard(genre, subgenre, isNewlyLockedSpin) {
+      const badge = document.getElementById('resultStatusBadge');
+      if (isNewlyLockedSpin) {
+        badge.className =
+          'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold uppercase bg-neonPink/20 text-neonPink border border-neonPink/50';
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-neonPink animate-ping"></span> TODAY'S VIBE LOCKED`;
+      } else {
+        badge.className =
+          'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold uppercase bg-neonCyan/15 text-neonCyan border border-neonCyan/40';
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-neonCyan"></span> PREVIEW // READY TO SPIN`;
+      }
+
+      document.getElementById('resultPrimaryTag').textContent = genre.name;
+      document.getElementById('resultSubgenreTitle').textContent = subgenre.name;
+      document.getElementById('resultSonicTexture').textContent = subgenre.texture;
+      document.getElementById('resultBpm').textContent = subgenre.bpm;
+      document.getElementById('resultMood').textContent = subgenre.mood;
+
+      // Update Quick-Launch Streaming Links
+      const encodedQuery = encodeURIComponent(subgenre.query);
+      document.getElementById('linkSpotify').href = `https://open.spotify.com/search/${encodedQuery}`;
+      document.getElementById('linkYTMusic').href = `https://music.youtube.com/search?q=${encodedQuery}`;
+      document.getElementById('linkSoundCloud').href = `https://soundcloud.com/search?q=${encodedQuery}`;
+    }
+
+    /********************************************************************
+     * 11. LOCALSTORAGE 7-DAY DAILY LISTENING LOG
+     ********************************************************************/
+    function loadListeningLog() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        state.historyLog = raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        state.historyLog = [];
+      }
+      renderListeningLog();
+    }
+
+    function saveCurrentVibeToLog() {
+      const genre = GENRE_CATALOG[state.selectedGenreIndex];
+      const subgenre = genre.subgenres[state.selectedSubgenreIndex];
+      const todayStr = getTodayDateString();
+
+      const newEntry = {
+        id: Date.now(),
+        date: todayStr,
+        primaryName: genre.name,
+        subgenreName: subgenre.name,
+        bpm: subgenre.bpm,
+        mood: subgenre.mood,
+        color: subgenre.color,
+        query: subgenre.query
+      };
+
+      // Replace if already logged today, or prepend to keep last 7 days
+      const existingTodayIdx = state.historyLog.findIndex((item) => item.date === todayStr);
+      if (existingTodayIdx !== -1) {
+        state.historyLog[existingTodayIdx] = newEntry;
+      } else {
+        state.historyLog.unshift(newEntry);
+      }
+
+      // Limit strictly to 7 entries
+      state.historyLog = state.historyLog.slice(0, 7);
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.historyLog));
+      } catch (e) {
+        // Fallback if storage quota restricted
+      }
+
+      soundEngine.playSelectClick();
+      renderListeningLog();
+      showToast(`Locked in "${subgenre.name}" for ${todayStr}!`);
+    }
+
+    function renderListeningLog() {
+      const container = document.getElementById('listeningLogContainer');
+      const headerTodayText = document.getElementById('headerTodayText');
+      const todayStr = getTodayDateString();
+
+      const todayEntry = state.historyLog.find((item) => item.date === todayStr);
+      if (todayEntry && headerTodayText) {
+        headerTodayText.textContent = todayEntry.subgenreName.toUpperCase();
+        headerTodayText.className = 'text-neonCyan font-semibold';
+      } else if (headerTodayText) {
+        headerTodayText.textContent = 'NOT LOCKED';
+        headerTodayText.className = 'text-gray-300 font-semibold';
+      }
+
+      if (state.historyLog.length === 0) {
+        container.innerHTML = `
+          <div class="rounded-xl border border-dashed border-white/10 p-6 text-center">
+            <p class="text-xs sm:text-sm text-gray-400">No daily frequencies locked in yet. Spin the roulette and click <strong class="text-white">"Lock In for Today's Log"</strong> to track your 7-day rotation.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = state.historyLog
+        .map((entry, idx) => {
+          const isToday = entry.date === todayStr;
+          const spotifyUrl = `https://open.spotify.com/search/${encodeURIComponent(entry.query || entry.subgenreName)}`;
+          return `
+            <div class="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-obsidian/70 border ${
+              isToday ? 'border-neonCyan/40' : 'border-white/10'
+            }">
+              <div class="flex items-center gap-3">
+                <span class="w-2.5 h-8 rounded-full shrink-0" style="background: ${entry.color || '#00f0ff'}"></span>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-mono ${isToday ? 'text-neonCyan font-bold' : 'text-gray-400'}">
+                      ${isToday ? 'TODAY // ' : ''}${entry.date}
+                    </span>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-gray-300">${entry.primaryName}</span>
+                  </div>
+                  <div class="font-display font-bold text-sm text-white">${entry.subgenreName}</div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span class="hidden sm:inline-block text-xs font-mono text-gray-400">${entry.bpm}</span>
+                <a href="${spotifyUrl}" target="_blank" rel="noopener noreferrer"
+                   class="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-mono text-neonCyan transition flex items-center gap-1.5"
+                   title="Play on Spotify">
+                  <i class="fa-solid fa-play text-[10px]"></i>
+                  <span>Listen</span>
+                </a>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    /********************************************************************
+     * 12. LIGHTWEIGHT 2D CANVAS CONFETTI / PARTICLE BURST
+     ********************************************************************/
+    let confettiCanvas, confettiCtx;
+    let particles = [];
+    let confettiAnimId = null;
+
+    function setupConfettiCanvas() {
+      confettiCanvas = document.getElementById('confettiCanvas');
+      if (!confettiCanvas) return;
+      confettiCtx = confettiCanvas.getContext('2d');
+      resizeConfettiCanvas();
+    }
+
+    function resizeConfettiCanvas() {
+      if (!confettiCanvas) return;
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+
+    function launchConfettiBurst(primaryColor = '#00f0ff') {
+      if (!confettiCanvas || !confettiCtx) return;
+      const palette = [primaryColor, '#00f0ff', '#ff007f', '#ffb703', '#ffffff'];
+      const originX = window.innerWidth > 1024 ? window.innerWidth * 0.72 : window.innerWidth * 0.5;
+      const originY = window.innerHeight * 0.45;
+
+      for (let i = 0; i < 55; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 4 + Math.random() * 11;
+        particles.push({
+          x: originX,
+          y: originY,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 3,
+          size: 4 + Math.random() * 5,
+          color: palette[Math.floor(Math.random() * palette.length)],
+          rotation: Math.random() * Math.PI * 2,
+          vRot: (Math.random() - 0.5) * 0.25,
+          alpha: 1,
+          decay: 0.014 + Math.random() * 0.012
+        });
+      }
+
+      if (!confettiAnimId) {
+        animateConfetti();
+      }
+    }
+
+    function animateConfetti() {
+      confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.28; // gravity
+        p.vx *= 0.985; // air drag
+        p.rotation += p.vRot;
+        p.alpha -= p.decay;
+
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        confettiCtx.save();
+        confettiCtx.globalAlpha = p.alpha;
+        confettiCtx.translate(p.x, p.y);
+        confettiCtx.rotate(p.rotation);
+        confettiCtx.fillStyle = p.color;
+        confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+        confettiCtx.restore();
+      }
+
+      if (particles.length > 0) {
+        confettiAnimId = requestAnimationFrame(animateConfetti);
+      } else {
+        confettiAnimId = null;
+      }
+    }
+
+    /********************************************************************
+     * 13. UI EVENT LISTENERS & TOAST HELPER
+     ********************************************************************/
+    let toastTimeout = null;
+    function showToast(message) {
+      const banner = document.getElementById('toastBanner');
+      const msgEl = document.getElementById('toastMessage');
+      msgEl.textContent = message;
+      banner.classList.remove('opacity-0', 'translate-y-3');
+      banner.classList.add('opacity-100', 'translate-y-0');
+
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        banner.classList.remove('opacity-100', 'translate-y-0');
+        banner.classList.add('opacity-0', 'translate-y-3');
+      }, 2800);
+    }
+
+    function setSpinnerMode(mode) {
+      state.spinnerMode = mode;
+      const wheelContainer = document.getElementById('wheelViewContainer');
+      const slotContainer = document.getElementById('slotViewContainer');
+      const modeWheelBtn = document.getElementById('modeWheelBtn');
+      const modeSlotBtn = document.getElementById('modeSlotBtn');
+
+      if (mode === 'wheel') {
+        wheelContainer.classList.remove('hidden');
+        slotContainer.classList.add('hidden');
+        modeWheelBtn.className = 'px-3 py-1 rounded-lg text-xs font-mono font-semibold transition bg-neonCyan text-obsidian';
+        modeSlotBtn.className = 'px-3 py-1 rounded-lg text-xs font-mono font-semibold transition text-gray-400 hover:text-white';
+        setupWheelCanvas();
+      } else {
+        wheelContainer.classList.add('hidden');
+        slotContainer.classList.remove('hidden');
+        modeSlotBtn.className = 'px-3 py-1 rounded-lg text-xs font-mono font-semibold transition bg-neonCyan text-obsidian';
+        modeWheelBtn.className = 'px-3 py-1 rounded-lg text-xs font-mono font-semibold transition text-gray-400 hover:text-white';
+        setupSlotCanvas();
+      }
+    }
+
+    /********************************************************************
+     * 14. STUDIO EDITOR MODAL (ADD / EDIT / DELETE GENRES & SUBGENRES)
+     ********************************************************************/
+    function openPrimaryModal(mode, genreIndex = null) {
+      state.editorContext = { type: 'primary', mode, genreIndex };
+      const modal = document.getElementById('editorModal');
+      const primaryFields = document.getElementById('primaryFields');
+      const subgenreFields = document.getElementById('subgenreFields');
+      const deleteBtn = document.getElementById('deleteEntityBtn');
+      const errEl = document.getElementById('modalErrorMsg');
+
+      errEl.classList.add('hidden');
+      primaryFields.classList.remove('hidden');
+      subgenreFields.classList.add('hidden');
+
+      if (mode === 'edit' && genreIndex !== null) {
+        const g = GENRE_CATALOG[genreIndex];
+        document.getElementById('modalBadge').textContent = 'EDIT PRIMARY GENRE';
+        document.getElementById('modalTitle').textContent = g.name;
+        document.getElementById('inputPrimaryName').value = g.name;
+        document.getElementById('inputPrimaryTagline').value = g.tagline || '';
+        document.getElementById('inputPrimaryIcon').value = g.icon || 'fa-wave-square';
+        document.getElementById('inputPrimaryAccent').value = g.accent || '#00f0ff';
+
+        if (GENRE_CATALOG.length > 1) {
+          deleteBtn.classList.remove('hidden');
+          deleteBtn.classList.add('inline-flex');
+        } else {
+          deleteBtn.classList.add('hidden');
+        }
+      } else {
+        document.getElementById('modalBadge').textContent = 'NEW PRIMARY GENRE';
+        document.getElementById('modalTitle').textContent = 'Add Primary Sonic Territory';
+        document.getElementById('inputPrimaryName').value = '';
+        document.getElementById('inputPrimaryTagline').value = '';
+        document.getElementById('inputPrimaryIcon').value = 'fa-wave-square';
+        document.getElementById('inputPrimaryAccent').value = '#00f0ff';
+        deleteBtn.classList.add('hidden');
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.getElementById('inputPrimaryName').focus();
+    }
+
+    function openSubgenreModal(mode, genreIndex, subIndex = null) {
+      state.editorContext = { type: 'subgenre', mode, genreIndex, subIndex };
+      const genre = GENRE_CATALOG[genreIndex];
+      const modal = document.getElementById('editorModal');
+      const primaryFields = document.getElementById('primaryFields');
+      const subgenreFields = document.getElementById('subgenreFields');
+      const deleteBtn = document.getElementById('deleteEntityBtn');
+      const errEl = document.getElementById('modalErrorMsg');
+
+      errEl.classList.add('hidden');
+      primaryFields.classList.add('hidden');
+      subgenreFields.classList.remove('hidden');
+
+      if (mode === 'edit' && subIndex !== null) {
+        const sub = genre.subgenres[subIndex];
+        document.getElementById('modalBadge').textContent = `${genre.name.toUpperCase()} // SUBGENRE`;
+        document.getElementById('modalTitle').textContent = `Edit ${sub.name}`;
+        document.getElementById('inputSubName').value = sub.name;
+        document.getElementById('inputSubShort').value = sub.shortLabel;
+        document.getElementById('inputSubBpm').value = sub.bpm;
+        document.getElementById('inputSubMood').value = sub.mood;
+        document.getElementById('inputSubColor').value = sub.color || '#00f0ff';
+        document.getElementById('inputSubTexture').value = sub.texture;
+        document.getElementById('inputSubQuery').value = sub.query || sub.name;
+
+        if (genre.subgenres.length > 1) {
+          deleteBtn.classList.remove('hidden');
+          deleteBtn.classList.add('inline-flex');
+        } else {
+          deleteBtn.classList.add('hidden');
+        }
+      } else {
+        document.getElementById('modalBadge').textContent = `${genre.name.toUpperCase()} // NEW SUBGENRE`;
+        document.getElementById('modalTitle').textContent = 'Add Subgenre Option';
+        document.getElementById('inputSubName').value = '';
+        document.getElementById('inputSubShort').value = '';
+        document.getElementById('inputSubBpm').value = '120 – 130 BPM';
+        document.getElementById('inputSubMood').value = 'Dynamic & Fresh';
+        const defaultColors = ['#00f0ff', '#ff007f', '#ffb703', '#10b981', '#a855f7'];
+        document.getElementById('inputSubColor').value =
+          defaultColors[genre.subgenres.length % defaultColors.length];
+        document.getElementById('inputSubTexture').value = '';
+        document.getElementById('inputSubQuery').value = '';
+        deleteBtn.classList.add('hidden');
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.getElementById('inputSubName').focus();
+    }
+
+    function closeEditorModal() {
+      const modal = document.getElementById('editorModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      state.editorContext = null;
+    }
+
+    function handleEditorSubmit(e) {
+      e.preventDefault();
+      if (!state.editorContext) return;
+      const errEl = document.getElementById('modalErrorMsg');
+      errEl.classList.add('hidden');
+
+      const { type, mode, genreIndex, subIndex } = state.editorContext;
+
+      if (type === 'primary') {
+        const name = document.getElementById('inputPrimaryName').value.trim();
+        const tagline =
+          document.getElementById('inputPrimaryTagline').value.trim() ||
+          'Custom sonic territory & curated subgenres';
+        const icon = document.getElementById('inputPrimaryIcon').value;
+        const accent = document.getElementById('inputPrimaryAccent').value;
+
+        if (!name) {
+          errEl.textContent = 'Please enter a Primary Genre Name.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+
+        if (mode === 'edit' && genreIndex !== null) {
+          GENRE_CATALOG[genreIndex].name = name;
+          GENRE_CATALOG[genreIndex].tagline = tagline;
+          GENRE_CATALOG[genreIndex].icon = icon;
+          GENRE_CATALOG[genreIndex].accent = accent;
+          saveCatalogToStorage();
+          selectPrimaryGenre(genreIndex);
+          showToast(`Updated primary genre "${name}".`);
+        } else {
+          const newGenre = {
+            id: 'custom_' + Date.now(),
+            name,
+            icon,
+            tagline,
+            accent,
+            subgenres: [
+              {
+                name: `${name} Core`,
+                shortLabel: `${name.slice(0, 14)} Core`,
+                bpm: '110 – 128 BPM',
+                mood: 'Essential & Classic',
+                texture: `Foundational grooves and signature instrumentation defining ${name}.`,
+                color: '#00f0ff',
+                query: `${name} Essentials Mix`
+              },
+              {
+                name: `Deep & Atmospheric ${name}`,
+                shortLabel: `Deep ${name.slice(0, 12)}`,
+                bpm: '95 – 115 BPM',
+                mood: 'Hypnotic & Immersive',
+                texture: `Lush textures, deep low-end warmth, and late-night ${name} atmosphere.`,
+                color: '#ff007f',
+                query: `Deep Atmospheric ${name} Mix`
+              },
+              {
+                name: `High-Energy ${name}`,
+                shortLabel: `Upbeat ${name.slice(0, 12)}`,
+                bpm: '128 – 150 BPM',
+                mood: 'Kinetic & Driving',
+                texture: `Propulsive percussion, peak-hour energy, and boundary-pushing ${name} hooks.`,
+                color: '#ffb703',
+                query: `Upbeat High Energy ${name}`
+              }
+            ]
+          };
+          GENRE_CATALOG.push(newGenre);
+          saveCatalogToStorage();
+          selectPrimaryGenre(GENRE_CATALOG.length - 1);
+          showToast(`Added new primary genre "${name}"!`);
+        }
+      } else if (type === 'subgenre') {
+        const name = document.getElementById('inputSubName').value.trim();
+        const shortLabelInput = document.getElementById('inputSubShort').value.trim();
+        const shortLabel = shortLabelInput || name.slice(0, 18);
+        const bpm = document.getElementById('inputSubBpm').value.trim() || '120 BPM';
+        const mood = document.getElementById('inputSubMood').value.trim() || 'Signature Vibe';
+        const color = document.getElementById('inputSubColor').value;
+        const texture =
+          document.getElementById('inputSubTexture').value.trim() ||
+          `Curated ${name} soundscapes and signature rhythmic textures.`;
+        const query = document.getElementById('inputSubQuery').value.trim() || `${name} Mix`;
+
+        if (!name) {
+          errEl.textContent = 'Please enter a Subgenre Full Name.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+
+        const genre = GENRE_CATALOG[genreIndex];
+        const subData = { name, shortLabel, bpm, mood, color, texture, query };
+
+        if (mode === 'edit' && subIndex !== null) {
+          genre.subgenres[subIndex] = subData;
+          saveCatalogToStorage();
+          selectPrimaryGenre(genreIndex);
+          state.selectedSubgenreIndex = subIndex;
+          updateResultCard(genre, subData, false);
+          showToast(`Updated subgenre "${name}".`);
+        } else {
+          genre.subgenres.push(subData);
+          saveCatalogToStorage();
+          selectPrimaryGenre(genreIndex);
+          state.selectedSubgenreIndex = genre.subgenres.length - 1;
+          updateResultCard(genre, subData, false);
+          showToast(`Added subgenre "${name}" to ${genre.name}!`);
+        }
+      }
+
+      soundEngine.playSelectClick();
+      closeEditorModal();
+    }
+
+    function handleDeleteEntity() {
+      if (!state.editorContext) return;
+      const { type, genreIndex, subIndex } = state.editorContext;
+
+      if (type === 'primary' && GENRE_CATALOG.length > 1) {
+        const removed = GENRE_CATALOG.splice(genreIndex, 1)[0];
+        saveCatalogToStorage();
+        const nextIndex = Math.max(0, Math.min(state.selectedGenreIndex, GENRE_CATALOG.length - 1));
+        selectPrimaryGenre(nextIndex);
+        showToast(`Deleted primary genre "${removed.name}".`);
+      } else if (type === 'subgenre') {
+        const genre = GENRE_CATALOG[genreIndex];
+        if (genre.subgenres.length > 1) {
+          const removed = genre.subgenres.splice(subIndex, 1)[0];
+          saveCatalogToStorage();
+          selectPrimaryGenre(genreIndex);
+          showToast(`Deleted subgenre "${removed.name}".`);
+        }
+      }
+
+      soundEngine.playSelectClick();
+      closeEditorModal();
+    }
+
+    function attachEventListeners() {
+      // Spin Subgenre Button
+      document.getElementById('spinButton').addEventListener('click', () => {
+        triggerSubgenreSpin();
+      });
+
+      // Random Primary Genre ("Surprise Primary") Button
+      document.getElementById('randomPrimaryBtn').addEventListener('click', () => {
+        triggerRandomPrimary(false);
+      });
+
+      // Full Roulette (Random Primary + Auto Spin Subgenre)
+      document.getElementById('fullSurpriseBtn').addEventListener('click', () => {
+        triggerRandomPrimary(true);
+      });
+
+      // Add Primary Genre Button
+      document.getElementById('addPrimaryBtn').addEventListener('click', () => {
+        if (state.isSpinning) return;
+        soundEngine.playSelectClick();
+        openPrimaryModal('add');
+      });
+
+      // Add Subgenre Button
+      document.getElementById('addSubgenreBtn').addEventListener('click', () => {
+        if (state.isSpinning) return;
+        soundEngine.playSelectClick();
+        openSubgenreModal('add', state.selectedGenreIndex);
+      });
+
+      // Reset Catalog to Default Button
+      document.getElementById('resetCatalogBtn').addEventListener('click', () => {
+        if (state.isSpinning) return;
+        GENRE_CATALOG = JSON.parse(JSON.stringify(DEFAULT_GENRE_CATALOG));
+        saveCatalogToStorage();
+        selectPrimaryGenre(0);
+        soundEngine.playSelectClick();
+        showToast('Restored default studio genre catalog.');
+      });
+
+      // Modal Controls
+      document.getElementById('closeModalBtn').addEventListener('click', closeEditorModal);
+      document.getElementById('cancelModalBtn').addEventListener('click', closeEditorModal);
+      document.getElementById('editorForm').addEventListener('submit', handleEditorSubmit);
+      document.getElementById('deleteEntityBtn').addEventListener('click', handleDeleteEntity);
+
+      // Close modal on backdrop click
+      document.getElementById('editorModal').addEventListener('click', (e) => {
+        if (e.target.id === 'editorModal') closeEditorModal();
+      });
+
+      // Spinner Mode Toggle (Wheel vs Slot Reel)
+      document.getElementById('modeWheelBtn').addEventListener('click', () => {
+        soundEngine.playSelectClick();
+        setSpinnerMode('wheel');
+      });
+
+      document.getElementById('modeSlotBtn').addEventListener('click', () => {
+        soundEngine.playSelectClick();
+        setSpinnerMode('slot');
+      });
+
+      // Lock In for Today's Log
+      document.getElementById('lockInTodayBtn').addEventListener('click', () => {
+        saveCurrentVibeToLog();
+      });
+
+      // Clear 7-Day Listening Log
+      document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+        state.historyLog = [];
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch (e) {}
+        renderListeningLog();
+        showToast('Daily Listening Log cleared.');
+      });
+
+      // Sound / Mute Toggle
+      document.getElementById('soundToggleBtn').addEventListener('click', () => {
+        soundEngine.muted = !soundEngine.muted;
+        const icon = document.getElementById('soundIcon');
+        const btn = document.getElementById('soundToggleBtn');
+        if (soundEngine.muted) {
+          icon.className = 'fa-solid fa-volume-xmark';
+          btn.classList.remove('text-neonCyan');
+          btn.classList.add('text-gray-500');
+          showToast('Studio Synth Audio Muted');
+        } else {
+          icon.className = 'fa-solid fa-volume-high';
+          btn.classList.remove('text-gray-500');
+          btn.classList.add('text-neonCyan');
+          soundEngine.playSelectClick();
+          showToast('Studio Synth Audio Enabled');
+        }
+      });
+    }
+
+    window.onload = function () {
+      initApp();
+    };
+  </script>
+</body>
+</html>
