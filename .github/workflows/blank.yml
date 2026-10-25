@@ -1,0 +1,398 @@
+```html
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Frequency // Genre Roulette</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#0b0c10',
+            panel: '#12141c',
+            neonCyan: '#00f0ff',
+            neonPink: '#ff007f',
+            neonAmber: '#ffb703',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Space Grotesk', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --bg-obsidian: #0b0c10;
+      --neon-cyan: #00f0ff;
+      --neon-pink: #ff007f;
+      --neon-amber: #ffb703;
+    }
+
+    body {
+      background-color: var(--bg-obsidian);
+      background-image: 
+        radial-gradient(circle at 12% 15%, rgba(0, 240, 255, 0.08) 0%, transparent 38%),
+        radial-gradient(circle at 88% 22%, rgba(255, 0, 127, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 50% 85%, rgba(255, 183, 3, 0.05) 0%, transparent 45%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+      color: #f3f4f6;
+      overflow-x: hidden;
+    }
+
+    /* Glassmorphism Studio Panels */
+    .glass-panel {
+      background: rgba(18, 20, 28, 0.78);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    /* Genre Card Active & Hover States */
+    .genre-card {
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .genre-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.24);
+    }
+    .genre-card.active {
+      border-color: var(--neon-cyan);
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.13) 0%, rgba(255, 0, 127, 0.08) 100%);
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.22), inset 0 0 15px rgba(0, 240, 255, 0.08);
+    }
+    .genre-card.roulette-scan {
+      border-color: var(--neon-amber);
+      box-shadow: 0 0 25px rgba(255, 183, 3, 0.45);
+      transform: scale(1.02);
+    }
+
+    /* Tactile Spin Button */
+    .btn-spin {
+      background: linear-gradient(135deg, #00f0ff 0%, #0088ff 45%, #ff007f 100%);
+      background-size: 200% 200%;
+      animation: gradientShift 5s ease infinite;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.35), 0 0 60px rgba(255, 0, 127, 0.2);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-spin:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.015);
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.55), 0 0 70px rgba(255, 0, 127, 0.35);
+    }
+    .btn-spin:active:not(:disabled) {
+      transform: translateY(1px) scale(0.99);
+    }
+    .btn-spin:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      filter: saturate(0.4);
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Animated Equalizer Bars */
+    .eq-bar {
+      width: 4px;
+      border-radius: 999px;
+      background: linear-gradient(to top, #00f0ff, #ff007f);
+      animation: eqBounce 1.1s ease-in-out infinite alternate;
+    }
+    @keyframes eqBounce {
+      0% { height: 6px; opacity: 0.5; }
+      100% { height: 22px; opacity: 1; }
+    }
+
+    /* Slot Machine Window */
+    .slot-window {
+      background: radial-gradient(circle at center, #161925 0%, #090a0f 100%);
+      box-shadow: inset 0 12px 28px rgba(0,0,0,0.85), inset 0 -12px 28px rgba(0,0,0,0.85);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0b0c10;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #262938;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #00f0ff;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-neonCyan selection:text-obsidian">
+
+  <!-- Particle / Confetti Overlay Canvas -->
+  <canvas id="confettiCanvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+  <!-- Top Studio Header -->
+  <header class="sticky top-0 z-30 border-b border-white/10 bg-obsidian/85 backdrop-blur-xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <!-- Animated Studio Equalizer Emblem -->
+        <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-end justify-center gap-1 pb-2.5 px-2 shadow-inner">
+          <span class="eq-bar" style="animation-delay: 0.0s"></span>
+          <span class="eq-bar" style="animation-delay: 0.25s"></span>
+          <span class="eq-bar" style="animation-delay: 0.1s"></span>
+          <span class="eq-bar" style="animation-delay: 0.4s"></span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-display font-extrabold text-lg sm:text-xl tracking-tight text-white">DAILY FREQUENCY</span>
+            <span class="hidden sm:inline-block text-xs font-mono uppercase px-2 py-0.5 rounded bg-neonCyan/15 text-neonCyan border border-neonCyan/30">// GENRE ROULETTE</span>
+          </div>
+          <p class="text-xs text-gray-400 font-mono" id="currentDateDisplay">LOADING STUDIO CLOCK...</p>
+        </div>
+      </div>
+
+      <!-- Right Controls: Today's Locked Status & Audio Mute Toggle -->
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <div id="headerTodayBadge" class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-gray-400">TODAY:</span>
+          <span id="headerTodayText" class="text-white font-semibold">NOT LOCKED</span>
+        </div>
+
+        <button id="fullSurpriseBtn" title="Randomly pick Primary Genre AND Spin Subgenre" class="px-3 py-2 rounded-xl bg-neonAmber/15 hover:bg-neonAmber/25 border border-neonAmber/40 text-neonAmber text-xs sm:text-sm font-display font-bold tracking-wide transition flex items-center gap-2">
+          <i class="fa-solid fa-bolt"></i>
+          <span class="hidden sm:inline">FULL ROULETTE</span>
+          <span class="sm:hidden">AUTO</span>
+        </button>
+
+        <button id="soundToggleBtn" aria-label="Toggle Sound Effects" class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-neonCyan transition" title="Toggle Web Audio Synth Sounds">
+          <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+
+      <!-- LEFT COLUMN (7 Cols on LG): Step 1 Primary Genre Grid + Active 3-Subgenre Breakdown -->
+      <section class="lg:col-span-7 flex flex-col gap-6">
+
+        <!-- Step 1 Panel: Primary Genre Selector -->
+        <div class="glass-panel rounded-2xl p-5 sm:p-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 text-[11px] font-mono font-bold uppercase rounded bg-neonCyan text-obsidian">STEP 01</span>
+                <h2 class="font-display text-lg sm:text-xl font-bold text-white tracking-tight">Select Primary Sonic Territory</h2>
+              </div>
+              <p class="text-xs sm:text-sm text-gray-400 mt-1">Choose your foundational genre, edit existing ones, or add your own custom genres.</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="addPrimaryBtn" class="px-3 py-2 rounded-xl bg-neonCyan/15 hover:bg-neonCyan/25 border border-neonCyan/40 text-neonCyan font-display font-bold text-xs sm:text-sm transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-plus"></i>
+                <span>Add Genre</span>
+              </button>
+              <button id="randomPrimaryBtn" class="px-3.5 py-2 rounded-xl bg-neonPink/15 hover:bg-neonPink/25 border border-neonPink/40 text-neonPink font-display font-bold text-xs sm:text-sm transition flex items-center gap-2 shadow-sm">
+                <i class="fa-solid fa-shuffle"></i>
+                <span>Surprise Primary</span>
+              </button>
+              <button id="resetCatalogBtn" title="Reset all genres to default studio catalog" class="px-2.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white font-mono text-xs transition flex items-center gap-1">
+                <i class="fa-solid fa-rotate-left"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Primary Genres Grid -->
+          <div id="genreGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <!-- Dynamically populated by JS -->
+          </div>
+        </div>
+
+        <!-- Step 2 Preview Panel: Subgenres for the Active Primary Genre -->
+        <div class="glass-panel rounded-2xl p-5 sm:p-6">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 text-[11px] font-mono font-bold uppercase rounded bg-neonPink text-white">STEP 02</span>
+              <h3 class="font-display text-base sm:text-lg font-bold text-white">
+                <span id="subgenreCountBadge">3</span> Subgenres Loaded: <span id="loadedGenreTitle" class="text-neonCyan">Electronic / EDM</span>
+              </h3>
+            </div>
+            <div class="flex items-center gap-3">
+              <span id="subgenreProbBadge" class="text-xs font-mono text-gray-400 hidden sm:inline">33.3% PROBABILITY EACH</span>
+              <button id="addSubgenreBtn" class="px-3 py-1.5 rounded-xl bg-neonPink/15 hover:bg-neonPink/25 border border-neonPink/40 text-neonPink font-display font-bold text-xs transition flex items-center gap-1.5">
+                <i class="fa-solid fa-plus"></i>
+                <span>Add Subgenre</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Subgenre Cards -->
+          <div id="subgenrePreviewList" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <!-- Dynamically populated by JS -->
+          </div>
+        </div>
+
+        <!-- Daily Listening Log (7-Day History) -->
+        <div class="glass-panel rounded-2xl p-5 sm:p-6">
+          <div class="flex items-center justify-between gap-2 mb-4">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-neonAmber/15 border border-neonAmber/30 flex items-center justify-center text-neonAmber">
+                <i class="fa-solid fa-calendar-check text-sm"></i>
+              </div>
+              <div>
+                <h3 class="font-display text-base sm:text-lg font-bold text-white leading-tight">Daily Listening Log</h3>
+                <p class="text-xs text-gray-400">Your last 7 locked daily frequencies (stored locally)</p>
+              </div>
+            </div>
+
+            <button id="clearHistoryBtn" class="text-xs font-mono text-gray-400 hover:text-rose-400 transition px-2.5 py-1 rounded-lg hover:bg-white/5">
+              <i class="fa-solid fa-trash-can mr-1"></i>Clear
+            </button>
+          </div>
+
+          <div id="listeningLogContainer" class="space-y-2.5">
+            <!-- Dynamically populated by JS -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT COLUMN (5 Cols on LG): Interactive Subgenre Spinner + Winning Vibe Card -->
+      <section class="lg:col-span-5 flex flex-col gap-6 lg:sticky lg:top-24">
+
+        <!-- Interactive Spinner Deck -->
+        <div class="glass-panel rounded-2xl p-5 sm:p-6 flex flex-col items-center relative overflow-hidden">
+          <!-- Subtle Top Glow Bar -->
+          <div class="w-full flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 text-[11px] font-mono font-bold uppercase rounded bg-neonAmber text-obsidian">STEP 03</span>
+              <h2 class="font-display text-lg font-bold text-white">Subgenre Roulette</h2>
+            </div>
+
+            <!-- View Mode Toggle: Wheel vs Slot Reel -->
+            <div class="inline-flex rounded-xl bg-obsidian/90 p-1 border border-white/10">
+              <button id="modeWheelBtn" class="px-3 py-1 rounded-lg text-xs font-mono font-semibold transition bg-neonCyan text-obsidian">
+                <i class="fa-solid fa-circle-notch mr-1"></i>Wheel
+              </button>
+              <button id="modeSlotBtn" class="px-3 py-1 rounded-lg text-xs font-mono font-semibold transition text-gray-400 hover:text-white">
+                <i class="fa-solid fa-sliders mr-1"></i>Slot Reel
+              </button>
+            </div>
+          </div>
+
+          <!-- Active Primary Indicator Banner -->
+          <div class="w-full rounded-xl bg-white/[0.03] border border-white/10 px-3.5 py-2 mb-4 flex items-center justify-between text-xs font-mono">
+            <span class="text-gray-400">ACTIVE DECK:</span>
+            <span id="deckActiveGenreName" class="text-neonCyan font-bold uppercase tracking-wider">ELECTRONIC / EDM</span>
+          </div>
+
+          <!-- VIEW 1: 6-Slice Balanced Roulette Wheel Canvas -->
+          <div id="wheelViewContainer" class="relative w-full max-w-[330px] aspect-square flex items-center justify-center my-1">
+            <!-- Top Physical Pointer Flapper -->
+            <div id="wheelPointer" class="absolute -top-2.5 z-20 pointer-events-none transition-transform duration-75" style="transform-origin: 50% 6px;">
+              <svg width="36" height="42" viewBox="0 0 36 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <filter id="pointerGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#ff007f" flood-opacity="0.8"/>
+                </filter>
+                <path d="M18 40L4 10C2.5 6.5 5 2 9 2H27C31 2 33.5 6.5 32 10L18 40Z" fill="#ff007f" stroke="#ffffff" stroke-width="2" filter="url(#pointerGlow)"/>
+                <circle cx="18" cy="10" r="4" fill="#0b0c10"/>
+              </svg>
+            </div>
+
+            <canvas id="rouletteCanvas" class="w-full h-full rounded-full"></canvas>
+          </div>
+
+          <!-- VIEW 2: Kinetic Slot Machine Reel Cycler (Hidden by default) -->
+          <div id="slotViewContainer" class="hidden w-full my-2">
+            <div class="slot-window relative w-full h-64 rounded-2xl border-2 border-white/15 overflow-hidden flex flex-col items-center justify-center">
+              <!-- Center Target Reticle Lines -->
+              <div class="
+                pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 h-20
+                border-y-2 border-neonCyan/70 bg-neonCyan/[0.06] z-10
+                flex items-center justify-between px-3
+              ">
+                <i class="fa-solid fa-caret-right text-neonCyan text-xl drop-shadow-[0_0_8px_#00f0ff]"></i>
+                <span class="text-[10px] font-mono uppercase tracking-widest text-neonCyan/80 bg-obsidian/80 px-2 py-0.5 rounded">LOCK TARGET</span>
+                <i class="fa-solid fa-caret-left text-neonCyan text-xl drop-shadow-[0_0_8px_#00f0ff]"></i>
+              </div>
+
+              <!-- Canvas for Ultra-Smooth 60FPS Kinetic Slot Reel -->
+              <canvas id="slotCanvas" class="w-full h-full block"></canvas>
+            </div>
+          </div>
+
+          <!-- Live Telemetry Readout During Spin -->
+          <div class="w-full mt-3 mb-4 flex items-center justify-between px-3 py-2 rounded-xl bg-obsidian/70 border border-white/5 font-mono text-xs">
+            <span class="text-gray-400">SIGNAL READOUT:</span>
+            <span id="liveSpinReadout" class="text-neonAmber font-bold truncate max-w-[200px]">READY TO SPIN</span>
+          </div>
+
+          <!-- Prominent Tactile SPIN SUBGENRE Button -->
+          <button id="spinButton" class="btn-spin w-full py-4 px-6 rounded-2xl font-display font-extrabold text-base sm:text-lg text-obsidian tracking-wider uppercase flex items-center justify-center gap-3 shadow-xl">
+            <i class="fa-solid fa-compact-disc text-xl animate-spin" style="animation-duration: 6s;"></i>
+            <span>SPIN SUBGENRE</span>
+          </button>
+        </div>
+
+        <!-- Winning Vibe Locked Result Card -->
+        <div id="vibeResultCard" class="glass-panel rounded-2xl p-5 sm:p-6 border-2 border-neonCyan/50 relative overflow-hidden transition-all duration-300">
+          <!-- Ambient Corner Glow -->
+          <div class=" -top-16 -right-16 w-36 h-36 bg-neonCyan/20 rounded-full blur-2xl pointer-events-none absolute"></div>
+          <div class=" -bottom-16 -left-16 w-36 h-36 bg-neonPink/20 rounded-full blur-2xl pointer-events-none absolute"></div>
+
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <span id="resultStatusBadge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold uppercase bg-neonCyan/15 text-neonCyan border border-neonCyan/40">
+              <span class="w-2 h-2 rounded-full bg-neonCyan animate-ping"></span>
+              STANDBY // SPIN TO LOCK VIBE
+            </span>
+            <span id="resultPrimaryTag" class="text-xs font-mono text-gray-400">Electronic / EDM</span>
+          </div>
+
+          <h3 id="resultSubgenreTitle" class="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight mb-2">
+            Melodic Bass & Dubstep
+          </h3>
+
+          <p id="resultSonicTexture" class="text-xs sm:text-sm text-gray-300 leading-relaxed mb-4">
+            Lush supersaw chords, emotional vocal chops, and thunderous sub-bass drops that balance euphoria with heavy low-end impact.
+          </p>
+
+          <!-- Vibe Check Telemetry Pills -->
+          <div class="grid grid-cols-2 gap-2.5 mb-5">
+            <div class="rounded-xl bg-obsidian/80 border border-white/10 p-3">
+              <div class="text-[10px] font-mono uppercase text-gray-400">TEMPO / BPM RANGE</div>
+              <div id="resultBpm" class="font-mono font-bold text-sm sm:text-base text-neonAmber mt-0.5">140 – 150 BPM</div>
+            </div>
+            <div class="rounded-xl bg-obsidian/80 border border-white/10 p-3">
+              <div class="text-[10px] font-mono uppercase text-gray-400">SONIC MOOD</div>
+              <div id="resultMood" class="font-display font-bold text-sm sm:text-base text-neonPink mt-0.5">Euphoric & Heavy</div>
+            </div>
+          </div>
+
+          <!-- Lock In For Today Action Button -->
+          <button id="lockInTodayBtn" class="w-
