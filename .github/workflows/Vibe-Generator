@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Containment Grid — Monthly Writing & Habit Tracker</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #181b22;
+      --panel-alt: #20242d;
+      --border: #2c3240;
+      --text: #eef1f6;
+      --muted: #8b93a6;
+      --accent: #3b82f6;
+      --slash-color: #38bdf8;
+      --cross-color: #f59e0b;
+      --blackout-bg: #050608;
+      --blackout-border: #10b981;
+      --star-color: #a855f7;
+      --debt-color: #ef4444;
+      --success: #10b981;
+      --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body.whiteboard-mode {
+      --bg: #f1f5f9;
+      --panel: #ffffff;
+      --panel-alt: #f8fafc;
+      --border: #334155;
+      --text: #0f172a;
+      --muted: #475569;
+      --accent: #2563eb;
+      --slash-color: #1d4ed8;
+      --cross-color: #dc2626;
+      --blackout-bg: #111827;
+      --blackout-border: #0f172a;
+      --star-color: #15803d;
+      --debt-color: #ea580c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      padding: 20px;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    .app-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Header & Top Controls */
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      background: var(--panel);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 24px;
+    }
+
+    .brand h1 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand p {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .header-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    button, select, input {
+      font-family: inherit;
+      font-size: 0.875rem;
+      background: var(--panel-alt);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.92;
+    }
+
+    /* Dashboard Metrics Row */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .metric-card {
+      background: var(--panel);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .metric-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .metric-value {
+      font-size: 2rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .metric-sub {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: var(--panel-alt);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.3s ease;
+    }
+
+    .progress-fill.success {
+      background: var(--success);
+    }
+
+    .ip-input-group {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .ip-input-group input {
+      width: 100%;
+      cursor: text;
+      font-size: 0.82rem;
+      padding: 6px 10px;
+    }
+
+    /* Main Content Layout */
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+      .main-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Calendar Board */
+    .calendar-board {
+      background: var(--panel);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .board-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-badge {
+      font-family: var(--font-mono);
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .weekdays-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr) 90px;
+      gap: 8px;
+      margin-bottom: 8px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .tuesday-highlight {
+      color: var(--accent);
+    }
+
+    .calendar-week-row {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr) 90px;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .day-cell {
+      aspect-ratio: 1 / 1.05;
+      min-height: 92px;
+      background: var(--panel-alt);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      position: relative;
+      user-select: none;
+      transition: transform 0.1s, border-color 0.15s;
+    }
+
+    .day-cell:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .day-cell.selected {
+      outline: 2px solid var(--accent);
+      border-color: var(--accent);
+    }
+
+    .day-cell.today {
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+
+    .day-cell.empty {
+      background: transparent;
+      border-color: transparent;
+      cursor: default;
+    }
+
+    .day-cell.empty:hover {
+      transform: none;
+    }
+
+    /* Blackout Hat-Trick Styling */
+    .day-cell.status-blackout {
+      background: var(--blackout-bg);
+      border-color: var(--blackout-border);
+      color: #ffffff;
+    }
+
+    .day-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      z-index: 2;
+    }
+
+    .day-number {
+      font-family: var(--font-mono);
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(128, 128, 128, 0.15);
+    }
+
+    .day-points-pill {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .status-blackout .day-points-pill {
+      color: #10b981;
+      font-weight: 800;
+    }
+
+    .day-symbol {
+      font-family: var(--font-mono);
+      font-size: 2.3rem;
+      font-weight: 900;
+      text-align: center;
+      line-height: 1;
+      margin: auto 0;
+      z-index: 2;
+    }
+
+    .sym-slash { color: var(--slash-color); }
+    .sym-cross { color: var(--cross-color); }
+    .sym-blackout { color: #10b981; letter-spacing: -2px; }
+    .sym-star { color: var(--star-color); }
+    .sym-debt { color: var(--debt-color); }
+
+    .day-margins {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--muted);
+      border-top: 1px dashed rgba(139, 147, 166, 0.25);
+      padding-top: 3px;
+      z-index: 2;
+    }
+
+    .status-blackout .day-margins {
+      color: #cbd5e1;
+      border-top-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .weekly-tally-cell {
+      background: var(--panel-alt);
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 6px;
+      text-align: center;
+      font-family: var(--font-mono);
+    }
+
+    .weekly-tally-score {
+      font-size: 1.25rem;
+      font-weight: 800;
+    }
+
+    .weekly-tally-tier {
+      font-size: 0.68rem;
+      font-weight: 700;
+      margin-top: 4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .tier-elite {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+    }
+
+    .tier-momentum {
+      background: rgba(59, 130, 246, 0.2);
+      color: #3b82f6;
+    }
+
+    .tier-reset {
+      background: rgba(139, 147, 166, 0.15);
+      color: var(--muted);
+    }
+
+    /* Right Sidebar: 8:30 PM Audit & Low-Energy Menu */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .sidebar-card {
+      background: var(--panel);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .sidebar-card h2 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .audit-checks {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--panel-alt);
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .check-row input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .check-label strong {
+      display: block;
+      font-size: 0.88rem;
+    }
+
+    .check-label span {
+      font-size: 0.76rem;
+      color: var(--muted);
+    }
+
+    .symbol-selector {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+    }
+
+    .sym-btn {
+      padding: 8px 4px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 1rem;
+      text-align: center;
+      border-radius: 6px;
+    }
+
+    .sym-btn.active {
+      border-color: var(--accent);
+      background: rgba(59, 130, 246, 0.2);
+    }
+
+    .sliders-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .field-box {
+      background: var(--panel-alt);
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field-box label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .field-box input[type="range"] {
+      width: 100%;
+      padding: 0;
+    }
+
+    .field-box input[type="number"],
+    .field-box select,
+    .field-box textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 0.82rem;
+    }
+
+    .menu-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .menu-pill {
+      font-size: 0.75rem;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: var(--panel-alt);
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .menu-pill:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .reward-list {
+      font-size: 0.82rem;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .reward-tier {
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: var(--panel-alt);
+      border-left: 3px solid var(--accent);
+    }
+
+    .reward-tier.unlocked {
+      border-left-color: var(--success);
+      background: rgba(16, 185, 129, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Header -->
+    <header>
+      <div class="brand">
+        <h1>⚡ THE CONTAINMENT GRID</h1>
+        <p>Morning Reset (6:00 AM) • Grind & Connect (5:00–8:30 PM) • The Audit (8:30 PM)</p>
+      </div>
+      <div class="header-controls">
+        <button id="prevMonthBtn">◀</button>
+        <select id="monthSelect"></select>
+        <button id="nextMonthBtn">▶</button>
+        <button id="modeToggleBtn">📋 Whiteboard Mode</button>
+        <button id="exportBtn">💾 Backup JSON</button>
+      </div>
+    </header>
+
+    <!-- Top Scoreboard Metrics -->
+    <section class="dashboard-grid">
+      <!-- Monthly Points & New IP Unlock -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span>Monthly Score (New IP Unlock)</span>
+          <span id="monthlyStatusBadge">TARGET: 80 PTS</span>
+        </div>
+        <div class="metric-value">
+          <span id="monthlyPointsVal">0</span>
+          <span class="metric-sub">/ 80+ pts</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="monthlyProgressBar" style="width: 0%"></div>
+        </div>
+        <div class="ip-input-group">
+          <input type="text" id="targetGameInput" placeholder="Set this month's New IP Game Target..." />
+        </div>
+      </div>
+
+      <!-- Current Week Tally -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span>Selected Week Tally (Tue Audit)</span>
+          <span id="weeklyStatusBadge">ELITE: 15+ PTS</span>
+        </div>
+        <div class="metric-value">
+          <span id="weeklyPointsVal">0</span>
+          <span class="metric-sub">/ 21 pts</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="weeklyProgressBar" style="width: 0%"></div>
+        </div>
+        <div class="metric-sub" id="weeklyRewardText">Select a day to view that week's reward tier.</div>
+      </div>
+
+      <!-- Hat Tricks & Sobriety Streak -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span>Sobriety & Hat-Trick Count</span>
+          <span>FOUNDATION</span>
+        </div>
+        <div class="metric-value">
+          <span id="soberDaysVal">0</span>
+          <span class="metric-sub">sober days this month (<span id="hatTrickVal">0</span> ■ Hat Tricks)</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill success" id="soberProgressBar" style="width: 0%"></div>
+        </div>
+        <div class="metric-sub">■ Blackout (3pt) or ★ Star (0pt) protects the chain.</div>
+      </div>
+
+      <!-- 6-Month Novel Hour Bank -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span>6-Month Novel Bank</span>
+          <span>150–200 HR GOAL</span>
+        </div>
+        <div class="metric-value">
+          <span id="totalHoursVal">0.0</span>
+          <span class="metric-sub">/ 150 hrs banked</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="hoursProgressBar" style="width: 0%"></div>
+        </div>
+        <div class="metric-sub" id="monthHoursText">0.0 hrs logged this month</div>
+      </div>
+    </section>
+
+    <!-- Main Grid + 8:30 PM Audit Sidebar -->
+    <div class="main-layout">
+      <!-- Monthly Calendar Whiteboard -->
+      <div class="calendar-board">
+        <div class="board-legend">
+          <div class="legend-item"><span class="legend-badge sym-slash">/</span> <strong>Slash (1 pt):</strong> 60m Ass-in-Chair</div>
+          <div class="legend-item"><span class="legend-badge sym-cross">X</span> <strong>Cross (2 pts):</strong> 60m + Story Forward</div>
+          <div class="legend-item"><span class="legend-badge sym-blackout" style="background:#000;color:#10b981;">■</span> <strong>Blackout (3 pts):</strong> 60m + Forward + Sober</div>
+          <div class="legend-item"><span class="legend-badge sym-star">★</span> <strong>Star (0 pt):</strong> Sober Rest Day</div>
+          <div class="legend-item"><span class="legend-badge sym-debt">O</span> <strong>Circle (0 pt):</strong> Paid 8:30 PM Debt</div>
+        </div>
+
+        <div class="weekdays-grid">
+          <div>Mon</div>
+          <div class="tuesday-highlight">Tue (Audit)</div>
+          <div>Wed</div>
+          <div>Thu</div>
+          <div>Fri</div>
+          <div>Sat</div>
+          <div>Sun</div>
+          <div>Weekly</div>
+        </div>
+
+        <div id="calendarRowsContainer"></div>
+      </div>
+
+      <!-- Right Sidebar: Daily 8:30 PM Audit -->
+      <aside class="sidebar">
+        <div class="sidebar-card">
+          <h2>
+            <span>🔔 The 8:30 PM Audit</span>
+            <span id="selectedDateLabel" style="font-family:var(--font-mono);font-size:0.85rem;color:var(--accent);"></span>
+          </h2>
+
+          <!-- 3-Step Checklist + Sobriety -->
+          <div class="audit-checks">
+            <label class="check-row">
+              <input type="checkbox" id="chkInput" />
+              <div class="check-label">
+                <strong>1. "Ass-in-Chair" Test (Input)</strong>
+                <span>Dedicated 60+ uninterrupted minutes to the project.</span>
+              </div>
+            </label>
+
+            <label class="check-row">
+              <input type="checkbox" id="chkOutput" />
+              <div class="check-label">
+                <strong>2. "Forward Motion" Test (Output)</strong>
+                <span>Finished a scene, solved a plot hole, or moved a beat forward.</span>
+              </div>
+            </label>
+
+            <label class="check-row">
+              <input type="checkbox" id="chkSober" />
+              <div class="check-label">
+                <strong>3. Sobriety Baseline Kept</strong>
+                <span>Stayed clean & protected the streak today.</span>
+              </div>
+            </label>
+
+            <label class="check-row">
+              <input type="checkbox" id="chkBrainDrain" />
+              <div class="check-label">
+                <strong>4. "Brain Drain" Closure</strong>
+                <span>Dumped lingering story ideas into Obsidian before play.</span>
+              </div>
+            </label>
+          </div>
+
+          <!-- Manual Symbol Override -->
+          <div>
+            <div style="font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;">
+              Board Symbol (Auto-calculated or click to override)
+            </div>
+            <div class="symbol-selector">
+              <button class="sym-btn" data-sym="">—</button>
+              <button class="sym-btn sym-slash" data-sym="/">/</button>
+              <button class="sym-btn sym-cross" data-sym="X">X</button>
+              <button class="sym-btn sym-blackout" data-sym="■">■</button>
+              <button class="sym-btn sym-star" data-sym="★">★</button>
+              <button class="sym-btn sym-debt" data-sym="O">O</button>
+            </div>
+          </div>
+
+          <!-- Margin Health & Hours -->
+          <div class="sliders-grid">
+            <div class="field-box">
+              <label><span>Mental (M)</span> <span id="mentalValDisplay">7</span></label>
+              <input type="range" id="mentalInput" min="1" max="10" value="7" />
+            </div>
+            <div class="field-box">
+              <label><span>Physical (P)</span> <span id="physicalValDisplay">7</span></label>
+              <input type="range" id="physicalInput" min="1" max="10" value="7" />
+            </div>
+          </div>
+
+          <div class="sliders-grid">
+            <div class="field-box">
+              <label>Writing Hours</label>
+              <input type="number" id="hoursInput" min="0" max="16" step="0.25" value="1.0" />
+            </div>
+            <div class="field-box">
+              <label>Project Focus</label>
+              <select id="projectInput">
+                <option value="Massless Infinity">Massless Infinity</option>
+                <option value="14-Day Lunar Cycle (Side-Quest)">14-Day Lunar Story</option>
+                <option value="Lenore (1926 Noir)">Lenore (1926 Noir)</option>
+                <option value="Obsidian Worldbuilding">Obsidian Lore / Tags</option>
+                <option value="15m Warm-Up Constraint">15m Warm-Up Spark</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-box">
+            <label>Obsidian Brain-Dump / Audit Note</label>
+            <textarea id="notesInput" rows="2" placeholder="Scene beat finished, plot knot untangled, or evening audit note..."></textarea>
+          </div>
+        </div>
+
+        <!-- Low-Executive-Function Menu -->
+        <div class="sidebar-card">
+          <h2>🔋 Low-Energy / Side-Quest Menu</h2>
+          <p style="font-size:0.76rem;color:var(--muted);">
+            Tank empty? Click any low-friction task below to log it into today's audit note and still earn your 60-minute slash (<code>/</code>):
+          </p>
+          <div class="menu-pills">
+            <span class="menu-pill" data-note="15-min E-Prime warm-up + character dossier cleanup">15m E-Prime Spark</span>
+            <span class="menu-pill" data-note="Organized Obsidian tags & linked faction lore notes">Obsidian Tag Cleanup</span>
+            <span class="menu-pill" data-note="Drafted physical & sensory description for 1 character/location">Sensory Description</span>
+            <span class="menu-pill" data-note="Sanctioned Side-Quest: 60m on 14-day lunar wilderness timeline">Side-Quest: Lunar Cycle</span>
+            <span class="menu-pill" data-note="Untangled plot hole / outlined next 3 scene beats">3-Beat Scene Outline</span>
+          </div>
+        </div>
+
+        <!-- Reward Tiers Reference -->
+        <div class="sidebar-card">
+          <h2>🏆 Active Reward Tiers</h2>
+          <div class="reward-list">
+            <div class="reward-tier" id="rewardTier10">
+              <strong>10–14 Pts (Weekly Momentum):</strong> Curated Flickchart Double-Feature Lock-In or Tech/Totem tinkering hour.
+            </div>
+            <div class="reward-tier" id="rewardTier15">
+              <strong>15–21 Pts (Weekly Elite):</strong> 🥩 <em>The High-End Cast-Iron Sear</em> OR 🎮 <em>System Override (Zero-Obligation Day)</em>.
+            </div>
+            <div class="reward-tier" id="rewardTier80">
+              <strong>80+ Pts (Monthly Boss):</strong> 🔥 <em>The New IP Unlock</em> — Buy this month's target game outright.
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'jay_containment_grid_v1';
+
+    const MONTHS = [
+      { key: '2026-10', label: 'October 2026', year: 2026, month: 9 },
+      { key: '2026-11', label: 'November 2026', year: 2026, month: 10 },
+      { key: '2026-12', label: 'December 2026', year: 2026, month: 11 },
+      { key: '2027-01', label: 'January 2027', year: 2027, month: 0 },
+      { key: '2027-02', label: 'February 2027', year: 2027, month: 1 },
+      { key: '2027-03', label: 'March 2027', year: 2027, month: 2 },
+      { key: '2027-04', label: 'April 2027', year: 2027, month: 3 }
+    ];
+
+    const POINTS_MAP = {
+      '': 0,
+      '/': 1,
+      'X': 2,
+      '■': 3,
+      '★': 0,
+      'O': 0
+    };
+
+    let state = {
+      currentMonthKey: '2026-11',
+      selectedDate: '2026-11-02',
+      whiteboardMode: false,
+      monthlyTargets: {
+        '2026-11': ''
+      },
+      days: {}
+    };
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          state = { ...state, ...parsed };
+        }
+      } catch (e) {
+        console.error('Failed to load state:', e);
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.error('Failed to save state:', e);
+      }
+    }
+
+    function getDayData(dateStr) {
+      if (!state.days[dateStr]) {
+        state.days[dateStr] = {
+          symbol: '',
+          input: false,
+          output: false,
+          sober: false,
+          brainDrain: false,
+          mental: 7,
+          physical: 7,
+          hours: 0,
+          project: 'Massless Infinity',
+          notes: ''
+        };
+      }
+      return state.days[dateStr];
+    }
+
+    function initMonthDropdown() {
+      const sel = document.getElementById('monthSelect');
+      sel.innerHTML = '';
+      MONTHS.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.key;
+        opt.textContent = m.label;
+        if (m.key === state.currentMonthKey) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }
+
+    function getMonthMeta(monthKey) {
+      return MONTHS.find(m => m.key === monthKey) || MONTHS[1];
+    }
+
+    function formatDateKey(year, monthIndex, day) {
+      const mm = String(monthIndex + 1).padStart(2, '0');
+      const dd = String(day).padStart(2, '0');
+      return `${year}-${mm}-${dd}`;
+    }
+
+    function renderCalendar() {
+      const meta = getMonthMeta(state.currentMonthKey);
+      const container = document.getElementById('calendarRowsContainer');
+      container.innerHTML = '';
+
+      const firstDay = new Date(meta.year, meta.month, 1);
+      const daysInMonth = new Date(meta.year, meta.month + 1, 0).getDate();
+
+      // Convert Sunday=0..Saturday=6 into Monday=0..Sunday=6
+      const startOffset = (firstDay.getDay() + 6) % 7;
+
+      let currentDay = 1;
+      const totalSlots = Math.ceil((startOffset + daysInMonth) / 7) * 7;
+      const numWeeks = totalSlots / 7;
+
+      for (let w = 0; w < numWeeks; w++) {
+        const row = document.createElement('div');
+        row.className = 'calendar-week-row';
+        let weekPoints = 0;
+
+        for (let d = 0; d < 7; d++) {
+          const slotIndex = w * 7 + d;
+          const cell = document.createElement('div');
+
+          if (slotIndex < startOffset || currentDay > daysInMonth) {
+            cell.className = 'day-cell empty';
+            row.appendChild(cell);
+          } else {
+            const dateStr = formatDateKey(meta.year, meta.month, currentDay);
+            const data = getDayData(dateStr);
+            const pts = POINTS_MAP[data.symbol] || 0;
+            weekPoints += pts;
+
+            cell.className = 'day-cell';
+            if (data.symbol === '■') cell.classList.add('status-blackout');
+            if (dateStr === state.selectedDate) cell.classList.add('selected');
+            if (dateStr === '2026-11-02') cell.classList.add('today');
+
+            let symClass = '';
+            if (data.symbol === '/') symClass = 'sym-slash';
+            else if (data.symbol === 'X') symClass = 'sym-cross';
+            else if (data.symbol === '■') symClass = 'sym-blackout';
+            else if (data.symbol === '★') symClass = 'sym-star';
+            else if (data.symbol === 'O') symClass = 'sym-debt';
+
+            const hasData = data.symbol !== '' || data.hours > 0 || data.notes.trim() !== '';
+
+            cell.innerHTML = `
+              <div class="day-top">
+                <span class="day-number">${currentDay}</span>
+                <span class="day-points-pill">${pts > 0 ? '+' + pts + 'pt' : (data.hours > 0 ? data.hours + 'h' : '')}</span>
+              </div>
+              <div class="day-symbol ${symClass}">${data.symbol || ''}</div>
+              <div class="day-margins">
+                <span>${hasData ? 'M:' + data.mental : 'M:-'}</span>
+                <span>${hasData ? 'P:' + data.physical : 'P:-'}</span>
+              </div>
+            `;
+
+            cell.addEventListener('click', () => {
+              state.selectedDate = dateStr;
+              saveState();
+              renderAll();
+            });
+
+            // Double-click cell to quick-cycle symbols
+            cell.addEventListener('dblclick', (e) => {
+              e.stopPropagation();
+              const order = ['', '/', 'X', '■', '★', 'O'];
+              const nextIdx = (order.indexOf(data.symbol) + 1) % order.length;
+              applySymbolToDay(dateStr, order[nextIdx]);
+            });
+
+            row.appendChild(cell);
+            currentDay++;
+          }
+        }
+
+        // Weekly Tally Column
+        const tallyCell = document.createElement('div');
+        tallyCell.className = 'weekly-tally-cell';
+        let tierClass = 'tier-reset';
+        let tierLabel = 'In Progress';
+        if (weekPoints >= 15) {
+          tierClass = 'tier-elite';
+          tierLabel = 'ELITE (15+)';
+        } else if (weekPoints >= 10) {
+          tierClass = 'tier-momentum';
+          tierLabel = 'SOLID (10+)';
+        }
+
+        tallyCell.innerHTML = `
+          <div class="weekly-tally-score">${weekPoints}<span style="font-size:0.75rem;color:var(--muted);">/21</span></div>
+          <div class="weekly-tally-tier ${tierClass}">${tierLabel}</div>
+        `;
+        row.appendChild(tallyCell);
+        container.appendChild(row);
+      }
+    }
+
+    function applySymbolToDay(dateStr, sym) {
+      const data = getDayData(dateStr);
+      data.symbol = sym;
+      if (sym === '/') {
+        data.input = true;
+        data.output = false;
+        if (data.hours === 0) data.hours = 1.0;
+      } else if (sym === 'X') {
+        data.input = true;
+        data.output = true;
+        data.sober = false;
+        if (data.hours === 0) data.hours = 1.0;
+      } else if (sym === '■') {
+        data.input = true;
+        data.output = true;
+        data.sober = true;
+        if (data.hours === 0) data.hours = 1.0;
+      } else if (sym === '★') {
+        data.input = false;
+        data.output = false;
+        data.sober = true;
+      } else if (sym === 'O') {
+        data.input = true;
+        if (data.hours === 0) data.hours = 1.0;
+      } else if (sym === '') {
+        data.input = false;
+        data.output = false;
+        data.sober = false;
+      }
+      saveState();
+      renderAll();
+    }
+
+    function recalculateSymbolFromChecks(data) {
+      if (data.input && data.output && data.sober) {
+        data.symbol = '■';
+      } else if (data.input && data.output) {
+        data.symbol = 'X';
+      } else if (data.input) {
+        data.symbol = '/';
+      } else if (data.sober) {
+        data.symbol = '★';
+      } else {
+        data.symbol = '';
+      }
+      if (data.input && data.hours === 0) {
+        data.hours = 1.0;
+      }
+    }
+
+    function renderSidebar() {
+      const data = getDayData(state.selectedDate);
+      document.getElementById('selectedDateLabel').textContent = state.selectedDate;
+
+      document.getElementById('chkInput').checked = !!data.input;
+      document.getElementById('chkOutput').checked = !!data.output;
+      document.getElementById('chkSober').checked = !!data.sober;
+      document.getElementById('chkBrainDrain').checked = !!data.brainDrain;
+
+      document.getElementById('mentalInput').value = data.mental;
+      document.getElementById('mentalValDisplay').textContent = data.mental;
+
+      document.getElementById('physicalInput').value = data.physical;
+      document.getElementById('physicalValDisplay').textContent = data.physical;
+
+      document.getElementById('hoursInput').value = data.hours;
+      document.getElementById('projectInput').value = data.project || 'Massless Infinity';
+      document.getElementById('notesInput').value = data.notes || '';
+
+      document.querySelectorAll('.sym-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.sym === data.symbol);
+      });
+    }
+
+    function renderMetrics() {
+      const meta = getMonthMeta(state.currentMonthKey);
+      const daysInMonth = new Date(meta.year, meta.month + 1, 0).getDate();
+
+      let monthlyPoints = 0;
+      let soberDays = 0;
+      let hatTricks = 0;
+      let monthHours = 0;
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const key = formatDateKey(meta.year, meta.month, d);
+        const item = state.days[key];
+        if (item) {
+          monthlyPoints += POINTS_MAP[item.symbol] || 0;
+          if (item.sober || item.symbol === '■' || item.symbol === '★') soberDays++;
+          if (item.symbol === '■') hatTricks++;
+          monthHours += Number(item.hours) || 0;
+        }
+      }
+
+      // Total hours across all months
+      let totalHours = 0;
+      Object.values(state.days).forEach(item => {
+        totalHours += Number(item.hours) || 0;
+      });
+
+      // Calculate Selected Date's Week Points (Monday-Sunday)
+      const selParts = state.selectedDate.split('-').map(Number);
+      const selDateObj = new Date(selParts[0], selParts[1] - 1, selParts[2]);
+      const dayOfWeek = (selDateObj.getDay() + 6) % 7; // Mon=0..Sun=6
+      const mondayObj = new Date(selDateObj);
+      mondayObj.setDate(selDateObj.getDate() - dayOfWeek);
+
+      let selectedWeekPoints = 0;
+      for (let i = 0; i < 7; i++) {
+        const cur = new Date(mondayObj);
+        cur.setDate(mondayObj.getDate() + i);
+        const k = formatDateKey(cur.getFullYear(), cur.getMonth(), cur.getDate());
+        if (state.days[k]) {
+          selectedWeekPoints += POINTS_MAP[state.days[k].symbol] || 0;
+        }
+      }
+
+      // Update Monthly UI
+      document.getElementById('monthlyPointsVal').textContent = monthlyPoints;
+      const monthPct = Math.min(100, Math.round((monthlyPoints / 80) * 100));
+      const monthBar = document.getElementById('monthlyProgressBar');
+      monthBar.style.width = monthPct + '%';
+      monthBar.classList.toggle('success', monthlyPoints >= 80);
+      document.getElementById('monthlyStatusBadge').textContent =
+        monthlyPoints >= 80 ? '🔥 NEW IP UNLOCKED!' : `${80 - monthlyPoints} PTS TO UNLOCK`;
+
+      const targetInput = document.getElementById('targetGameInput');
+      targetInput.value = state.monthlyTargets[state.currentMonthKey] || '';
+
+      // Update Weekly UI
+      document.getElementById('weeklyPointsVal').textContent = selectedWeekPoints;
+      const weekPct = Math.min(100, Math.round((selectedWeekPoints / 21) * 100));
+      const weekBar = document.getElementById('weeklyProgressBar');
+      weekBar.style.width = weekPct + '%';
+      weekBar.classList.toggle('success', selectedWeekPoints >= 15);
+
+      const rewardText = document.getElementById('weeklyRewardText');
+      if (selectedWeekPoints >= 15) {
+        rewardText.textContent = '🥩 ELITE UNLOCKED: High-End Sear or Zero-Obligation Day!';
+      } else if (selectedWeekPoints >= 10) {
+        rewardText.textContent = `🎬 Momentum Unlocked! (${15 - selectedWeekPoints} pts to Elite Tier)`;
+      } else {
+        rewardText.textContent = `${15 - selectedWeekPoints} pts needed this week for Elite Reward.`;
+      }
+
+      // Highlight Sidebar Reward Tiers
+      document.getElementById('rewardTier10').classList.toggle('unlocked', selectedWeekPoints >= 10 && selectedWeekPoints < 15);
+      document.getElementById('rewardTier15').classList.toggle('unlocked', selectedWeekPoints >= 15);
+      document.getElementById('rewardTier80').classList.toggle('unlocked', monthlyPoints >= 80);
+
+      // Update Sobriety UI
+      document.getElementById('soberDaysVal').textContent = soberDays;
+      document.getElementById('hatTrickVal').textContent = hatTricks;
+      const soberPct = Math.min(100, Math.round((soberDays / daysInMonth) * 100));
+      document.getElementById('soberProgressBar').style.width = soberPct + '%';
+
+      // Update Novel Hours UI
+      document.getElementById('totalHoursVal').textContent = totalHours.toFixed(1);
+      document.getElementById('monthHoursText').textContent = `${monthHours.toFixed(1)} hrs logged in ${meta.label}`;
+      const hoursPct = Math.min(100, Math.round((totalHours / 150) * 100));
+      document.getElementById('hoursProgressBar').style.width = hoursPct + '%';
+    }
+
+    function renderAll() {
+      document.body.classList.toggle('whiteboard-mode', !!state.whiteboardMode);
+      document.getElementById('modeToggleBtn').textContent =
+        state.whiteboardMode ? '🌙 Tactical Dark Mode' : '📋 Whiteboard Mode';
+      initMonthDropdown();
+      renderCalendar();
+      renderSidebar();
+      renderMetrics();
+    }
+
+    // Event Listeners
+    document.getElementById('monthSelect').addEventListener('change', (e) => {
+      state.currentMonthKey = e.target.value;
+      state.selectedDate = `${state.currentMonthKey}-01`;
+      saveState();
+      renderAll();
+    });
+
+    document.getElementById('prevMonthBtn').addEventListener('click', () => {
+      const idx = MONTHS.findIndex(m => m.key === state.currentMonthKey);
+      if (idx > 0) {
+        state.currentMonthKey = MONTHS[idx - 1].key;
+        state.selectedDate = `${state.currentMonthKey}-01`;
+        saveState();
+        renderAll();
+      }
+    });
+
+    document.getElementById('nextMonthBtn').addEventListener('click', () => {
+      const idx = MONTHS.findIndex(m => m.key === state.currentMonthKey);
+      if (idx < MONTHS.length - 1) {
+        state.currentMonthKey = MONTHS[idx + 1].key;
+        state.selectedDate = `${state.currentMonthKey}-01`;
+        saveState();
+        renderAll();
+      }
+    });
+
+    document.getElementById('modeToggleBtn').addEventListener('click', () => {
+      state.whiteboardMode = !state.whiteboardMode;
+      saveState();
+      renderAll();
+    });
+
+    document.getElementById('targetGameInput').addEventListener('input', (e) => {
+      state.monthlyTargets[state.currentMonthKey] = e.target.value;
+      saveState();
+    });
+
+    // Audit Checkboxes
+    ['chkInput', 'chkOutput', 'chkSober', 'chkBrainDrain'].forEach(id => {
+      document.getElementById(id).addEventListener('change', () => {
+        const data = getDayData(state.selectedDate);
+        data.input = document.getElementById('chkInput').checked;
+        data.output = document.getElementById('chkOutput').checked;
+        data.sober = document.getElementById('chkSober').checked;
+        data.brainDrain = document.getElementById('chkBrainDrain').checked;
+        recalculateSymbolFromChecks(data);
+        saveState();
+        renderAll();
+      });
+    });
+
+    // Manual Symbol Buttons
+    document.querySelectorAll('.sym-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        applySymbolToDay(state.selectedDate, btn.dataset.sym);
+      });
+    });
+
+    // Sliders & Inputs
+    document.getElementById('mentalInput').addEventListener('input', (e) => {
+      const data = getDayData(state.selectedDate);
+      data.mental = Number(e.target.value);
+      document.getElementById('mentalValDisplay').textContent = data.mental;
+      saveState();
+      renderCalendar();
+    });
+
+    document.getElementById('physicalInput').addEventListener('input', (e) => {
+      const data = getDayData(state.selectedDate);
+      data.physical = Number(e.target.value);
+      document.getElementById('physicalValDisplay').textContent = data.physical;
+      saveState();
+      renderCalendar();
+    });
+
+    document.getElementById('hoursInput').addEventListener('input', (e) => {
+      const data = getDayData(state.selectedDate);
+      data.hours = Math.max(0, Number(e.target.value));
+      saveState();
+      renderCalendar();
+      renderMetrics();
+    });
+
+    document.getElementById('projectInput').addEventListener('change', (e) => {
+      const data = getDayData(state.selectedDate);
+      data.project = e.target.value;
+      saveState();
+    });
+
+    document.getElementById('notesInput').addEventListener('input', (e) => {
+      const data = getDayData(state.selectedDate);
+      data.notes = e.target.value;
+      saveState();
+      renderCalendar();
+    });
+
+    // Low-Energy Menu Pills
+    document.querySelectorAll('.menu-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        const data = getDayData(state.selectedDate);
+        data.input = true;
+        if (data.hours === 0) data.hours = 1.0;
+        data.notes = data.notes
+          ? `${data.notes} | ${pill.dataset.note}`
+          : pill.dataset.note;
+        recalculateSymbolFromChecks(data);
+        saveState();
+        renderAll();
+      });
+    });
+
+    // Export Backup JSON
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(state, null, 2));
+      const a = document.createElement('a');
+      a.setAttribute('href', dataStr);
+      a.setAttribute('download', `containment_grid_backup_${state.currentMonthKey}.json`);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    });
+
+    // Boot
+    loadState();
+    renderAll();
+  </script>
+</body>
+</html>
